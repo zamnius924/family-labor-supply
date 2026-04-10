@@ -47,10 +47,42 @@ add_sources <- list(
   days = read_excel("/Users/alexey/Desktop/Labor market research/data/days.xlsx"),
   # ВРП
   GRP = read_excel("~/Desktop/Labor market research/data/grp/grp.xlsx", sheet = 3) %>% 
-    pivot_longer(cols = "1998":"2019", names_to = "year", values_to = "grp") %>% 
+    pivot_longer(
+        cols = "1998":"2019", 
+        names_to = "year", 
+        values_to = "grp"
+    ) %>% 
     mutate(year = as.numeric(year)),
   # МРОТ
   fed_dist = read_excel("/Users/alexey/Desktop/Labor market research/data/federal wage minimum/fed_min.xlsx")
 )
 
 source("source_add.R")
+
+
+# Основные ограничения на выборку -----------------------------------------
+### Сводим все данные в общий файл
+all_data <- data_source$data_ind %>%
+  left_join(data_source$data_hh) %>% 
+  left_join(data_source$data_add) %>% 
+  left_join(add_sources$days) %>% 
+  left_join(add_sources$GRP) %>% 
+  left_join(add_sources$CPI_reg) %>%
+  left_join(add_sources$fed_dist) %>%
+  arrange(id_ind, year)
+
+
+### Вводим основные ограничения на выборку => получаем выборку на индивидуальном уровне
+data_ind <- restrict_sample(
+    df = all_data, 
+    codes = data_source$code_ind,
+    restrict_repr = TRUE, 
+    restrict_repr_year = last_year,
+    year_min = first_year,
+    year_max = last_year,
+    age_min = 25, 
+    age_max = 55
+  ) %>% 
+  as.data.frame(.)
+
+source("data_ind.R")
