@@ -30,7 +30,7 @@ source("functions/add_functions.R")
   setwd("/Users/alexey/Desktop/Labor market research/code/Blundell & Co./repository")
 }
 
-source("source_data.R")
+source("arrangers/source_data.R")
 
 #rm(rlms)
 
@@ -69,8 +69,7 @@ add_sources <- list(
   fed_dist = read_excel("/Users/alexey/Desktop/Labor market research/data/federal wage minimum/fed_min.xlsx")
 )
 
-source("source_cpi.R")
-#source("source_add.R")
+source("arrangers/source_cpi.R")
 
 
 ### Оставим во вспомогательных файлах только необходимые переменные
@@ -109,4 +108,11 @@ data_ind <- restrict_sample(
   ) %>% 
   as.data.frame(.)
 
-source("data_ind.R")
+source("arrangers/data_ind.R")
+
+source("arrangers/data_full.R")
+
+
+
+
+# models -----------------------------------------

@@ -92,3 +92,18 @@ data_ind$earn <- data_ind$wage * data_ind$lab_sup_year
 ## Доля работающих членов д/х
 data_ind <- data_ind %>% 
   mutate(work_age_share = work_age / nfm)
+
+## Уберем наблюдения, где потребление и з/п равны 0
+data_ind <- data_ind %>%
+  subset((wage > 0 | is.na(wage) == TRUE) &
+  (consump_nd > 0 | is.na(consump_nd) == TRUE))
+
+
+
+
+# Ограничения на темпы прироста метрик интереса ---------------------------
+# Очистка от ошибок измерения
+data_ind <- omit_me(data_ind)
+
+# Добавление темпов прироста основных метрик интереса
+data_ind <- metrics_diff(data_ind)
