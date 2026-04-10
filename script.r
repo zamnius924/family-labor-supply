@@ -1,11 +1,29 @@
 {
-    library(rlms)
-    library(dplyr)
-    library(plm)
-    library(readxl)
-    library(tidyr)
-    library(ggplot2)
-    library(haven)
+  library(rlms)
+  library(dplyr)
+  library(plm)
+  library(readxl)
+  library(tidyr)
+  library(ggplot2)
+  library(haven)
 }
 
 source("rlms_fix.R")
+source("add_functions.R")
+
+setwd("/Users/alexey/Desktop/Labor market research/data/RLMS_1994_2020 (28.VI.2022)")
+
+rlms <- list(
+  # данные об индивидах
+  all_data_ind = rlms_read("USER_RLMS-HSE_IND_1994_2020_v4_rus.sav"),
+  # данные о д/х
+  all_data_hh = rlms_read("USER_RLMS-HSE_HH_1994_2020_rus.sav"), 
+  # файл с доходами и расходами
+  all_data_add = rlms_read("Доходы и расходы.sav"), 
+  # файл с родственными связями
+  all_code_rel = read_sav("Идентификационные номера родственников.sav"), 
+  # файл с кодами индивидов
+  all_code_ind = read_sav("Идентификационные номера индивидов.sav") 
+)
+
+source("data_source.R")
