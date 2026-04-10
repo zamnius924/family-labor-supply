@@ -23,8 +23,8 @@ data_source$code_year <- rlms$all_data_ind %>%
   mutate(id_i_name = unique(data_source$code_ind$id_i_name))
 
 # Создадим таблицу с кодами индивидов и волн
-# Здесь представлены индивиды, участвовавшие когда-либо в опросе, даже за годы, когда они
-# не проходили интервью
+# Здесь представлены индивиды, участвовавшие когда-либо в опросе, даже за годы,
+# когда они не проходили интервью
 data_source$code_ind <- data_source$code_ind %>% 
   left_join(data_source$code_year) %>% 
   relocate(id_i, .after = id_ind)
