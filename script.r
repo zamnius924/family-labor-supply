@@ -32,6 +32,11 @@ source("add_functions.R")
 
 source("source_data.R")
 
+#rm(rlms)
+
+
+
+
 # Преобразование файлов с дополнительными данными -------------------------
 # Параметры выборки
 first_year <- 2000
@@ -42,11 +47,18 @@ period <- last_year - first_year + 1
 ### Импортируем дополнительные файлы
 add_sources <- list(
   # ИПЦ региональный
-  CPI_reg = read_excel("/Users/alexey/Desktop/Labor market research/data/CPI_reg_2.xlsx"),
+  CPI_reg = read_excel(
+    "/Users/alexey/Desktop/Labor market research/data/CPI_reg_2.xlsx"
+  ),
   # Выходные в году
-  days = read_excel("/Users/alexey/Desktop/Labor market research/data/days.xlsx"),
+  days = read_excel(
+    "/Users/alexey/Desktop/Labor market research/data/days.xlsx"
+  ),
   # ВРП
-  GRP = read_excel("~/Desktop/Labor market research/data/grp/grp.xlsx", sheet = 3) %>% 
+  GRP = read_excel(
+    "~/Desktop/Labor market research/data/grp/grp.xlsx", 
+    sheet = 3
+  ) %>% 
     pivot_longer(
         cols = "1998":"2019", 
         names_to = "year", 
@@ -57,7 +69,19 @@ add_sources <- list(
   fed_dist = read_excel("/Users/alexey/Desktop/Labor market research/data/federal wage minimum/fed_min.xlsx")
 )
 
-source("source_add.R")
+source("source_cpi.R")
+#source("source_add.R")
+
+
+### Оставим во вспомогательных файлах только необходимые переменные
+data_source$data_hh <- data_source$data_hh %>% 
+  select(id_w, id_h, num_head, nfm, consump_nd)
+add_sources$CPI_reg <- add_sources$CPI_reg %>% 
+  select(-CPI_reg_chain)
+add_sources$days <- add_sources$days %>% 
+  select(-work_days, -publ_hol)
+
+
 
 
 # Основные ограничения на выборку -----------------------------------------

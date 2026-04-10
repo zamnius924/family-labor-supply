@@ -8,11 +8,13 @@ data_source$code_ind <- rlms$all_code_ind %>%
     eid_i, fid_i, gid_i, hid_i, iid_i,
     jid_i, kid_i, lid_i, mid_i, nid_i,
     oid_i, pid_i, qid_i, rid_i, sid_i,
-    tid_i, uid_i, vid_i, wid_i, xid_i, yid_i) %>% 
+    tid_i, uid_i, vid_i, wid_i, xid_i, yid_i
+  ) %>% 
   pivot_longer(
     cols = ends_with("_i"), 
     names_to = "id_i_name", 
-    values_to = "id_i") %>%
+    values_to = "id_i"
+  ) %>%
   arrange(id_ind, id_i_name)
 
 # Создадим таблицу с кодами волн
@@ -70,7 +72,7 @@ data_source$consump_nd_names <- paste(
     sep = "") # название всех переменных потребления
 colnames(data_source$data_consump_nd_hh) <- data_source$consump_nd_names
 
-# характеристики д/х
+# Характеристики д/х
 data_source$data_hh <- rlms$all_data_hh %>%
   select(id_w, id_h, num_head = a8, nfm) %>%
   cbind(., data_source$data_consump_nd_hh) %>%
@@ -81,6 +83,12 @@ summary(data_source$data_hh$id_h)
 
 # Удаляем вспомогательные данные по д/х
 data_source[c("data_consump_nd_hh")] <- NULL
+
+# Создадим недлительное потребление
+data_source$data_hh$consump_nd <- data_source$data_hh %>%
+  select(all_of(data_source$consump_nd_names)) %>% 
+  apply(1, sum, na.rm = TRUE)
+data_source$data_hh$consump_nd <- data_source$data_hh$consump_nd * 12 # переводим в годовое измерение
 
 
 ### Дополнительные данные 
@@ -131,4 +139,48 @@ data_source$code_ind <- data_source$code_ind %>%
   select(year, id_ind, id_i, id_part, id_i_part, origsm, family, sex)
 
 
+### Сделаем в данных переменную для регионов
+data_source$data_ind <- data_source$data_ind %>% 
+  mutate(region_rus = case_when(
+    region == 1 ~ "Ленинградская область", 
+    region == 9 ~ "Краснодарский край", 
+    region == 10 ~ "Удмуртская Республика",
+    region == 12 ~ "Пермский край", 
+    region == 14 ~ "Калужская область", 
+    region == 33 ~ "Тамбовская область",
+    region == 39 ~ "Вологодская область", 
+    region == 45 ~ "Республика Татарстан", 
+    region == 46 ~ "Курганская область",
+    region == 47 ~ "Оренбургская область", 
+    region == 48 ~ "Чувашская Республика", 
+    region == 52 ~ "Ставропольский край",
+    region == 58 ~ "Алтайский край", 
+    region == 66 ~ "Красноярский край", 
+    region == 67 ~ "Тверская область",
+    region == 70 ~ "Саратовская область", 
+    region == 71 ~ "Томская область", 
+    region == 72 ~ "Липецкая область",
+    region == 73 ~ "Красноярский край", 
+    region == 77 ~ "Кабардино-Балкарская Республика", 
+    region == 84 ~ "Алтайский край",
+    region == 86 ~ "Ханты-Мансийский автономный округ – Югра", 
+    region == 89 ~ "Республика Коми", 
+    region == 92 ~ "Приморский край",
+    region == 93 ~ "Амурская область", 
+    region == 100 ~ "Саратовская область", 
+    region == 105 ~ "Республика Коми",
+    region == 106 ~ "Челябинская область", 
+    region == 107 ~ "Челябинская область", 
+    region == 116 ~ "Нижегородская область",
+    region == 117 ~ "Пензенская область", 
+    region == 129 ~ "Краснодарский край", 
+    region == 135 ~ "Смоленская область",
+    region == 136 ~ "Тульская область", 
+    region == 137 ~ "Ростовская область", 
+    region == 138 ~ "г. Москва",
+    region == 140 ~ "г. Москва", 
+    region == 141 ~ "г. Санкт-Петербург", 
+    region == 142 ~ "Московская область",
+    region == 161 ~ "Новосибирская область")
+  )
 
