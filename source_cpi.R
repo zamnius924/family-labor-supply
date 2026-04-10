@@ -24,3 +24,5 @@ for (s in unique(add_sources$CPI_reg$region_rus)) {
       add_sources$CPI_reg[which(add_sources$CPI_reg$year == t - 1 & add_sources$CPI_reg$region_rus == s),]$CPI_reg / 100
   }
 }
+
+rm(s, t)

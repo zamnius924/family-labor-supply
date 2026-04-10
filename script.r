@@ -8,8 +8,8 @@
   library(haven)
 }
 
-source("rlms_fix.R")
-source("add_functions.R")
+source("functions/rlms_fix.R")
+source("functions/add_functions.R")
 
 {
   setwd("/Users/alexey/Desktop/Labor market research/data/RLMS_1994_2020 (28.VI.2022)")
