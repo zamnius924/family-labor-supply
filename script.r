@@ -6,6 +6,7 @@
   library(tidyr)
   library(ggplot2)
   library(haven)
+  library(pracma)
 }
 
 source("functions/rlms_fix.R")
@@ -85,29 +86,10 @@ add_sources$days <- add_sources$days %>%
 
 # Основные ограничения на выборку -----------------------------------------
 ### Сводим все данные в общий файл
-all_data <- data_source$data_ind %>%
-  left_join(data_source$data_hh) %>% 
-  left_join(data_source$data_add) %>% 
-  left_join(add_sources$days) %>% 
-  left_join(add_sources$GRP) %>% 
-  left_join(add_sources$CPI_reg) %>%
-  left_join(add_sources$fed_dist) %>%
-  arrange(id_ind, year)
+source("arrangers/data_all.R")
 
 
 ### Вводим основные ограничения на выборку => получаем выборку на индивидуальном уровне
-data_ind <- restrict_sample(
-    df = all_data, 
-    codes = data_source$code_ind,
-    restrict_repr = TRUE, 
-    restrict_repr_year = last_year,
-    year_min = first_year,
-    year_max = last_year,
-    age_min = 25, 
-    age_max = 55
-  ) %>% 
-  as.data.frame(.)
-
 source("arrangers/data_ind.R")
 
 source("arrangers/data_full.R")
@@ -117,3 +99,5 @@ source("arrangers/data_full.R")
 
 # models -----------------------------------------
 data <- models_stage_1(data)
+
+source("arrangers/data_mod.R")

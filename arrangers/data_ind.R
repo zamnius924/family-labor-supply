@@ -1,3 +1,15 @@
+data_ind <- restrict_sample(
+    df = all_data, 
+    codes = data_source$code_ind,
+    restrict_repr = TRUE, 
+    restrict_repr_year = last_year,
+    year_min = first_year,
+    year_max = last_year,
+    age_min = 25, 
+    age_max = 55
+  ) %>% 
+  as.data.frame(.)
+
 # Метрики труда -----------------------------------------------------------
 ### Создаем метрики предложения труда по трем работам
 data_ind <- data_ind %>%
