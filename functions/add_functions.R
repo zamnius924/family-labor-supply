@@ -45,11 +45,16 @@ restrict_sample <- function(df, codes, restrict_repr, restrict_repr_year, year_m
 # Филлеры -----------------------------------------------------------------
 filler_wage <- function(df) {
   # Заполним пропуски з/п в месяц данными за прошлый месяц по первой работе
-  df <- df %>% mutate(wage_month_filled = coalesce(wage_month, wage_last_month))
+  df <- df %>% 
+    mutate(wage_month_filled = coalesce(wage_month, wage_last_month))
   
   ## Переменные з/п в месяц для второй и третьей работ
   # можно просто переименовать уже имеющиеся переменные в данных
-  df <- df %>% rename(wage_month_filled_2 = wage_last_month_2, wage_month_filled_3 = wage_last_month_3) %>% 
+  df <- df %>% 
+    rename(
+      wage_month_filled_2 = wage_last_month_2, 
+      wage_month_filled_3 = wage_last_month_3
+    ) %>% 
     relocate(wage_month_filled_2, wage_month_filled_3, .after = last_col())
   
   return(df)
@@ -66,22 +71,26 @@ filler_lab_sup <- function(df) {
       lab_sup_month_w_filled_2 = lab_sup_week_2 * days / 12 / 7,
       # через отработанные часы в день (22 рабочих дня в месяце)
       lab_sup_month_d_filled = lab_sup * 22,
-      lab_sup_month_d_filled_2 = lab_sup_2 * 22) %>% 
+      lab_sup_month_d_filled_2 = lab_sup_2 * 22
+    ) %>% 
 
     ## Заполняем пропуски в month_w_filled:
     mutate(
       # 1) данными из lab_sup_last_month
       lab_sup_month_filled = coalesce(lab_sup_month_w_filled, lab_sup_last_month),
-      lab_sup_month_filled_2 = coalesce(lab_sup_month_w_filled_2, lab_sup_last_month_2)) %>% 
+      lab_sup_month_filled_2 = coalesce(lab_sup_month_w_filled_2, lab_sup_last_month_2)
+    ) %>% 
     mutate(
       # 2) данными из month_d_filled
       lab_sup_month_filled = coalesce(lab_sup_month_filled, lab_sup_month_d_filled),
-      lab_sup_month_filled_2 = coalesce(lab_sup_month_filled_2, lab_sup_month_d_filled_2)) %>%
+      lab_sup_month_filled_2 = coalesce(lab_sup_month_filled_2, lab_sup_month_d_filled_2)
+    ) %>%
 
     ## Теперь будем сравнивать полученные часы в месяц с часами за прошлый месяц
     mutate(
       lab_sup_dev = abs(lab_sup_month_filled - lab_sup_last_month),
-      lab_sup_dev_2 = abs(lab_sup_month_filled_2 - lab_sup_last_month_2)) %>%
+      lab_sup_dev_2 = abs(lab_sup_month_filled_2 - lab_sup_last_month_2)
+    ) %>%
 
     ## После сравнения мы будем проводить замену там, где отклонение больше 48 часов
     mutate(
@@ -90,16 +99,19 @@ filler_lab_sup <- function(df) {
         TRUE ~ lab_sup_month_filled),
       lab_sup_month_filled_2 = case_when(
         lab_sup_dev_2 >= 48 & is.na(lab_sup_dev_2) == FALSE ~ lab_sup_last_month_2,
-        TRUE ~ lab_sup_month_filled_2)) %>% 
+        TRUE ~ lab_sup_month_filled_2)
+    ) %>% 
 
     ## Доделаем переменную для третьей работы
     mutate(
       lab_sup_month_filled_3 = case_when(
         regular == 2 ~ lab_sup_last_month_3,
-        TRUE ~ NA_real_)) %>%
+        TRUE ~ NA_real_)
+    ) %>%
 
     ## Удалим ненужные колонки
-    select(-lab_sup_dev, -lab_sup_dev_2, -lab_sup_month_w_filled, -lab_sup_month_w_filled_2,
+    select(-lab_sup_dev, -lab_sup_dev_2, 
+      -lab_sup_month_w_filled, -lab_sup_month_w_filled_2,
       -lab_sup_month_d_filled, -lab_sup_month_d_filled_2)
   
   return(df)
@@ -112,40 +124,48 @@ corrector_lab_sup <- function(df) {
     mutate(
       # 1) Не должно быть индивидов, которые working = 2, но предлагают труд или получают з/п
       lab_sup_month_filled = replace(lab_sup_month_filled, working == 2, NA),
-      wage_month_filled = replace(wage_month_filled, working == 2, NA)) %>% 
+      wage_month_filled = replace(wage_month_filled, working == 2, NA)
+    ) %>% 
     mutate(
       # 2) Не должно быть работающих индивидов с нулевыми з/п и отработанными часами
       lab_sup_month_filled = replace(lab_sup_month_filled, working == 1 & lab_sup_month_filled == 0, NA),
-      wage_month_filled = replace(wage_month_filled, working == 1 & wage_month_filled == 0, NA)) %>% 
+      wage_month_filled = replace(wage_month_filled, working == 1 & wage_month_filled == 0, NA)
+    ) %>% 
 
     ## На второй работе есть два показателя working
     mutate(
-      working_2 = replace(working_2.1, working_2.1 == 2 & working_2.2 == 1, 1)) %>% 
+      working_2 = replace(working_2.1, working_2.1 == 2 & working_2.2 == 1, 1)
+    ) %>% 
     mutate(
       # 1) не должно быть индивидов, которые working = 2, но предлагают труд или получают з/п
       lab_sup_month_filled_2 = replace(lab_sup_month_filled_2, working_2 == 2, NA),
-      wage_month_filled_2 = replace(wage_month_filled_2, working_2 == 2, NA)) %>% 
+      wage_month_filled_2 = replace(wage_month_filled_2, working_2 == 2, NA)
+    ) %>% 
     mutate(
       # 2) Не должно быть работающих индивидов с нулевыми з/п и отработанными часами
       lab_sup_month_filled_2 = replace(lab_sup_month_filled_2, working_2 == 1 & lab_sup_month_filled_2 == 0, NA),
-      wage_month_filled_2 = replace(wage_month_filled_2, working_2 == 1 & wage_month_filled_2 == 0, NA)) %>% 
+      wage_month_filled_2 = replace(wage_month_filled_2, working_2 == 1 & wage_month_filled_2 == 0, NA)
+    ) %>% 
 
     ## Третья работа
     mutate(
       # 1) не должно быть индивидов, которые working = 2, но предлагают труд или получают з/п
       lab_sup_month_filled_3 = replace(lab_sup_month_filled_3, working_3 == 2, NA),
-      wage_month_filled_3 = replace(wage_month_filled_3, working_3 == 2, NA)) %>%
+      wage_month_filled_3 = replace(wage_month_filled_3, working_3 == 2, NA)
+    ) %>%
     mutate(
       # 2) Не должно быть работающих индивидов с нулевыми з/п и отработанными часами
       lab_sup_month_filled_3 = replace(lab_sup_month_filled_3, working_3 == 1 & lab_sup_month_filled_3 == 0, NA),
-      wage_month_filled_3 = replace(wage_month_filled_3, working_3 == 1 & wage_month_filled_3 == 0, NA)) %>% 
+      wage_month_filled_3 = replace(wage_month_filled_3, working_3 == 1 & wage_month_filled_3 == 0, NA)
+    ) %>% 
 
     ## Преобразование индикаторов работы
     mutate(
       # Перекодируем в формат 0/1
       working = abs(working - 2),
       working_2 = abs(working_2 - 2),
-      working_3 = abs(working_3 - 2)) %>% 
+      working_3 = abs(working_3 - 2)
+    ) %>% 
     relocate(working, working_2, working_3, .after = last_col())
   
   return(df)
@@ -158,14 +178,17 @@ corrector_lab_sup <- function(df) {
 partner_merge <- function(df, df_source) {
   df_merged <- df %>%
     left_join( # присоединяем индексы партнеров
-      df_source$code_ind %>% select(id_ind, year, id_part)) 
+      df_source$code_ind %>% select(id_ind, year, id_part)
+    ) 
   
   df_merged <- df_merged %>% 
     left_join( # присоединяем характеристики партнеров
       df %>% select(
         id_part = id_ind, id_h, year, sex_part = sex, lab_sup_year_part = lab_sup_year, wage_part = wage,
         sum_working_part = sum_working, earn_part = earn, diplom_lev_part = diplom_lev, age_part = age,
-        dlwage_part = dlwage, dlearn_part = dlearn, dlhours_part = dlhours))
+        dlwage_part = dlwage, dlearn_part = dlearn, dlhours_part = dlhours
+      )
+    )
   
   return(df_merged)
 }
@@ -206,16 +229,23 @@ omit_me <- function(df) {
   # Проводим очистку темпов прироста дохода, з/п и потребления от выбросов
   df_log <- expand.grid(id_ind = unique(df$id_ind), year = first_year:last_year) %>%
     left_join(
-      df %>% select(id_ind, year, wage, earn, consump_nd, lab_sup_year)) %>%
+      df %>% select(id_ind, year, wage, earn, consump_nd, lab_sup_year)
+    ) %>%
     arrange(id_ind, year) %>%
-    mutate(lwage = log(wage), learn = log(earn), lcons = log(consump_nd), lhours = log(lab_sup_year)) %>%
+    mutate(
+      lwage = log(wage), 
+      learn = log(earn), 
+      lcons = log(consump_nd), 
+      lhours = log(lab_sup_year)
+    ) %>%
     group_by(id_ind) %>% 
     mutate(
       # Создаем переменные "скачков"
       jw = (lwage - dplyr::lag(lwage)) * (dplyr::lead(lwage) - lwage),
       je = (learn - dplyr::lag(learn)) * (dplyr::lead(learn) - learn),
       jc = (lcons - dplyr::lag(lcons)) * (dplyr::lead(lcons) - lcons),
-      jh = (lhours - dplyr::lag(lhours)) * (dplyr::lead(lhours) - lhours))
+      jh = (lhours - dplyr::lag(lhours)) * (dplyr::lead(lhours) - lhours)
+    )
   
   # Убираем значения переменных в уровнях, где скачки были большими
   df_log$wage[df_log$jw < quantile(df_log$jw, prob = 0.0025, na.rm = TRUE)] <- NA
@@ -225,9 +255,16 @@ omit_me <- function(df) {
 
   df <- df %>%
     select(-wage, -earn, -consump_nd, -lab_sup_year) %>% 
-    left_join(df_log %>%
-        select(id_ind, year, wage, earn, consump_nd, lab_sup_year)) %>%
-    mutate(lwage = log(wage), learn = log(earn), lcons = log(consump_nd), lhours = log(lab_sup_year))
+    left_join(
+      df_log %>% 
+        select(id_ind, year, wage, earn, consump_nd, lab_sup_year)
+    ) %>%
+    mutate(
+      lwage = log(wage),
+      learn = log(earn),
+      lcons = log(consump_nd),
+      lhours = log(lab_sup_year)
+    )
   
   return(df)
 }
@@ -236,16 +273,21 @@ omit_me <- function(df) {
 omit_outlier <- function(df, g_wage_res, g_consump_res) {
   # Накладывает ограничения на темпы роста з/п и потребления
   df_expanded <- expand.grid( # создаем сетку по всем индивидам и всем годам
-    id_ind = unique(df$id_ind), year = first_year:last_year) %>%
+    id_ind = unique(df$id_ind), year = first_year:last_year
+    ) %>%
     left_join( # наполняем сетку данными о переменных интереса + создаем индикатор присутствия в выборке
-      df %>% select(id_ind, year, consump_nd, wage, lab_sup_year, earn) %>% mutate(present = 1)) %>%
+      df %>% 
+        select(id_ind, year, consump_nd, wage, lab_sup_year, earn) %>% 
+        mutate(present = 1)
+    ) %>%
     arrange(id_ind, year) %>%
     group_by(id_ind) %>% 
     mutate( # создаем темпы роста переменных интереса
       g_consump = consump_nd / dplyr::lag(consump_nd),
       g_wage = wage / dplyr::lag(wage),
       g_lab_sup_year = lab_sup_year / dplyr::lag(lab_sup_year),
-      g_earn = earn / dplyr::lag(earn)) %>% 
+      g_earn = earn / dplyr::lag(earn)
+    ) %>% 
     # накладываем ограничения на темпы роста
     subset(g_wage <= g_wage_res | is.na(g_wage)) %>% # з/п
     subset(g_consump <= g_consump_res | is.na(g_consump)) # потребление
@@ -265,18 +307,22 @@ omit_outlier <- function(df, g_wage_res, g_consump_res) {
 metrics_diff <- function(df) {
   # Создаем датафрейм с темпами прироста метрик интереса
   df_new <- expand.grid(id_ind = unique(df$id_ind), year = first_year:last_year) %>%
-    left_join(df %>% select(id_ind, year, lwage, learn, lcons, lhours)) %>% 
+    left_join(
+      df %>% select(id_ind, year, lwage, learn, lcons, lhours)
+    ) %>% 
     arrange(id_ind, year) %>% 
     group_by(id_ind) %>% 
     mutate(
       dlwage = lwage - dplyr::lag(lwage),
       dlearn = learn - dplyr::lag(learn),
       dlcons = lcons - dplyr::lag(lcons),
-      dlhours = lhours - dplyr::lag(lhours)) %>% 
+      dlhours = lhours - dplyr::lag(lhours)
+    ) %>% 
     select(id_ind, year, dlwage, dlearn, dlcons, dlhours)
   
   # Прикрепляем полученные метрики к исходному датафрейму
-  df <- df %>% left_join(df_new, by = c("id_ind", "year"))
+  df <- df %>% 
+    left_join(df_new, by = c("id_ind", "year"))
   
   return(df)
 }
@@ -287,8 +333,10 @@ metrics_diff <- function(df) {
 # Обработка результатов первого шага оценивания ---------------------------
 results_first_stage_diff <- function(df, model_wM, model_wF, model_c, model_yM, model_yF, model_hM, model_hF) {
   # Для моделей, оцененных в РАЗНОСТЯХ
-  res_w_male <- expand.grid(id_ind = unique(as.numeric(as.character(index(model_wM)[,1]))),
-    year = first_year:last_year) %>% # делаем сетку: для каждого i есть все значения t
+  res_w_male <- expand.grid(
+    id_ind = unique(as.numeric(as.character(index(model_wM)[,1]))),
+    year = first_year:last_year
+    ) %>% # делаем сетку: для каждого i есть все значения t
     left_join( # заполняем сетку остатками
       cbind(index(model_wM), resid(model_wM)) %>%
         lapply(FUN = function(x) {as.numeric(paste(x))}) %>%
@@ -297,8 +345,10 @@ results_first_stage_diff <- function(df, model_wM, model_wF, model_c, model_yM, 
     ) %>% # внутри сетки строим первые разности
     arrange(id_ind, year)
   
-  res_w_female <- expand.grid(id_part = unique(as.numeric(as.character(index(model_wF)[,1]))),
-    year = first_year:last_year) %>%
+  res_w_female <- expand.grid(
+    id_part = unique(as.numeric(as.character(index(model_wF)[,1]))),
+    year = first_year:last_year
+    ) %>%
     left_join(
       cbind(index(model_wF), resid(model_wF)) %>%
         lapply(FUN = function(x) {as.numeric(paste(x))}) %>%
@@ -307,8 +357,10 @@ results_first_stage_diff <- function(df, model_wM, model_wF, model_c, model_yM, 
     ) %>%
     arrange(id_part, year)
   
-  res_c <- expand.grid(id_hh = unique(as.numeric(as.character(index(model_c)[,1]))),
-    year = first_year:last_year) %>%
+  res_c <- expand.grid(
+    id_hh = unique(as.numeric(as.character(index(model_c)[,1]))),
+    year = first_year:last_year
+    ) %>%
     left_join(
       cbind(index(model_c), resid(model_c)) %>%
         lapply(FUN = function(x) {as.numeric(paste(x))}) %>%
@@ -317,8 +369,10 @@ results_first_stage_diff <- function(df, model_wM, model_wF, model_c, model_yM, 
     ) %>%
     arrange(id_hh, year)
   
-  res_e_male <- expand.grid(id_ind = unique(as.numeric(as.character(index(model_yM)[,1]))),
-    year = first_year:last_year) %>%
+  res_e_male <- expand.grid(
+    id_ind = unique(as.numeric(as.character(index(model_yM)[,1]))),
+    year = first_year:last_year
+    ) %>%
     left_join(
       cbind(index(model_yM), resid(model_yM)) %>%
         lapply(FUN = function(x) {as.numeric(paste(x))}) %>%
@@ -327,8 +381,10 @@ results_first_stage_diff <- function(df, model_wM, model_wF, model_c, model_yM, 
     ) %>%
     arrange(id_ind, year)
   
-  res_e_female <- expand.grid(id_part = unique(as.numeric(as.character(index(model_yF)[,1]))),
-    year = first_year:last_year) %>%
+  res_e_female <- expand.grid(
+    id_part = unique(as.numeric(as.character(index(model_yF)[,1]))),
+    year = first_year:last_year
+    ) %>%
     left_join(
       cbind(index(model_yF), resid(model_yF)) %>%
         lapply(FUN = function(x) {as.numeric(paste(x))}) %>%
@@ -337,8 +393,10 @@ results_first_stage_diff <- function(df, model_wM, model_wF, model_c, model_yM, 
     ) %>%
     arrange(id_part, year)
   
-  res_h_male <- expand.grid(id_ind = unique(as.numeric(as.character(index(model_hM)[,1]))),
-    year = first_year:last_year) %>%
+  res_h_male <- expand.grid(
+    id_ind = unique(as.numeric(as.character(index(model_hM)[,1]))),
+    year = first_year:last_year
+    ) %>%
     left_join(
       cbind(index(model_hM), resid(model_hM)) %>%
         lapply(FUN = function(x) {as.numeric(paste(x))}) %>%
@@ -347,8 +405,10 @@ results_first_stage_diff <- function(df, model_wM, model_wF, model_c, model_yM, 
     ) %>%
     arrange(id_ind, year)
   
-  res_h_female <- expand.grid(id_part = unique(as.numeric(as.character(index(model_hF)[,1]))),
-    year = first_year:last_year) %>%
+  res_h_female <- expand.grid(
+    id_part = unique(as.numeric(as.character(index(model_hF)[,1]))),
+    year = first_year:last_year
+    ) %>%
     left_join(
       cbind(index(model_hF), resid(model_hF)) %>%
         lapply(FUN = function(x) {as.numeric(paste(x))}) %>%
