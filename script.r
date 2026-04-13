@@ -125,3 +125,9 @@ res_model_pref
 ### Бутстрап
 source("scripts/bootstrap.R")
 results
+
+### Гетерогенность по уровню образования
+source("scripts/model_pref_hetero.R")
+res_model_pref_hetero
+
+source("scripts/bootstrap_pref_hetero.R")
