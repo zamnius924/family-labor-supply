@@ -127,6 +127,7 @@ source("scripts/bootstrap.R")
 results
 
 ### Гетерогенность по уровню образования
+source("arrangers/data_mod_hetero.R")
 source("scripts/model_pref_hetero.R")
 res_model_pref_hetero
 
@@ -134,3 +135,6 @@ source("scripts/bootstrap_pref_hetero.R")
 res_model_pref_hetero$table
 res_model_pref_hetero$elast_own
 res_model_pref_hetero$elast_cross
+
+### Гетерогенность по доходу
+
