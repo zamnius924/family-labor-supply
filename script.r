@@ -98,10 +98,17 @@ source("arrangers/data_full.R")
 
 
 # models -----------------------------------------
+### Шаг 1
 source("scripts/model_stage_1.R")
 
 # Создание переменных для GMM
 source("arrangers/data_mod.R")
 
-
+### Шаг 2
 source("scripts/model_stage_2.R")
+res_model_wage
+
+### Шаг 3
+source("scripts/model_stage_3.R")
+res_model_pref
+
