@@ -151,3 +151,6 @@ res_model_pref_cond
 
 source("scripts/plot_pref_cond_own_3d.R")
 plot_pref_cond_own_3d$fig
+
+source("scripts/plot_pref_cond_cross_3d.R")
+plot_pref_cond_cross_3d$fig
