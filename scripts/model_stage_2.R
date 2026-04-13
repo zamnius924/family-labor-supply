@@ -28,7 +28,9 @@ start_model_wage <- list(
       1, # k_c_vM
       1, # k_c_uF
       1 # k_c_vF
-    )))
+    )
+  )
+)
 
 start_model_wage$start <- c(
   0.15, # sigma_vM
@@ -43,7 +45,8 @@ start_model_wage$start <- c(
   0.07, # k_c_uM
   0.2, # k_c_vM
   0.05, # k_c_uF
-  0.15) # k_c_vF
+  0.15 # k_c_vF
+)
 
 model_wage <- fmincon(
   fn = GMM_model_wage,
