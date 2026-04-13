@@ -116,6 +116,7 @@ source("arrangers/data_mod.R")
 
 ### Internal fit
 source("scripts/internal_fit.R")
+fit_plot$plot
 
 ### Шаг 2
 source("scripts/model_stage_2.R")
