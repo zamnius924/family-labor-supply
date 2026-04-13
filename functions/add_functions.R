@@ -743,6 +743,22 @@ GMM_model_pref <- function(kap, sig, data) {
 }
 
 
+bootstrap <- function(hh, i) {
+  
+  boot_sample <- data.frame(id_hh = hh[i]) %>%
+    left_join(data_mod)
+  
+  boot_model_wage <- fmincon(fn = GMM_model_wage, x0 = start_model_wage$start,
+    data = boot_sample)
+  boot_res_model_wage <- c(boot_model_wage$par, boot_model_wage$convergence, boot_model_wage$value)
+  
+  boot_model_pref <- fmincon(fn = GMM_model_pref, x0 = start_model_pref$start,
+    data = boot_sample, sig = boot_res_model_wage)
+  boot_res_model_pref <- c(boot_model_pref$par, boot_model_pref$convergence, boot_model_pref$value)
+  
+  return(c(boot_res_model_wage, boot_res_model_pref))
+}
+
 
 
 

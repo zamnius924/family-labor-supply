@@ -7,6 +7,10 @@
   library(ggplot2)
   library(haven)
   library(pracma)
+  library(boot)
+  library(tibble)
+  library(latex2exp)
+  library(patchwork)
 }
 
 source("functions/rlms_fix.R")
@@ -43,6 +47,9 @@ source("arrangers/source_data.R")
 first_year <- 2000
 last_year <- 2019
 period <- last_year - first_year + 1
+
+# Дополнительные параметры
+B <- 1000
 
 
 ### Импортируем дополнительные файлы
@@ -104,6 +111,9 @@ source("scripts/model_stage_1.R")
 # Создание переменных для GMM
 source("arrangers/data_mod.R")
 
+### Internal fit
+source("scripts/internal_fit.R")
+
 ### Шаг 2
 source("scripts/model_stage_2.R")
 res_model_wage
@@ -111,4 +121,9 @@ res_model_wage
 ### Шаг 3
 source("scripts/model_stage_3.R")
 res_model_pref
+
+### Бутстрап
+source("scripts/bootstrap.R")
+results
+
 
