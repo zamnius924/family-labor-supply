@@ -13,6 +13,7 @@
   library(patchwork)
   library(collapse)
   library(broom)
+  library(plotly)
 }
 
 source("functions/rlms_fix.R")
@@ -39,7 +40,7 @@ source("functions/add_functions.R")
 
 source("arrangers/source_data.R")
 
-#rm(rlms)
+rm(rlms)
 
 
 
@@ -135,6 +136,8 @@ res_model_pref_hetero
 
 source("scripts/bootstrap_pref_hetero.R")
 res_model_pref_hetero$table
+
+source("scripts/plot_pref_hetero.R")
 res_model_pref_hetero$elast_own
 res_model_pref_hetero$elast_cross
 
@@ -142,3 +145,9 @@ res_model_pref_hetero$elast_cross
 source("arrangers/data_mod_cond.R")
 
 data_cond
+source("scripts/model_pref_cond.R")
+
+res_model_pref_cond
+
+source("scripts/plot_pref_cond_own_3d.R")
+plot_pref_cond_own_3d$fig

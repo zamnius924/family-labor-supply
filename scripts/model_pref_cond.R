@@ -86,7 +86,7 @@ for (t in 1:length(unique(data_cond$grid$num))) {
   boot_pref_cond <- boot(
     sample_index,
     bootstrap_cond,
-    R = B,
+    R = 5,
     parallel = "multicore", 
     ncpus = 8,
     t = t
@@ -102,3 +102,28 @@ for (t in 1:length(unique(data_cond$grid$num))) {
   )
   
 }
+
+# Построение ДИ
+res_model_pref_cond$CI_u <- res_model_pref_cond$coef[,2:9] + 1.96 * res_model_pref_cond$sd[,2:9]
+res_model_pref_cond$CI_l <- res_model_pref_cond$coef[,2:9] - 1.96 * res_model_pref_cond$sd[,2:9]
+res_model_pref_cond$CI_u$num <- res_model_pref_cond$coef$num
+res_model_pref_cond$CI_l$num <- res_model_pref_cond$coef$num
+
+res_model_pref_cond$coef <- as.data.frame(res_model_pref_cond$coef) %>%
+  left_join(
+    data_cond$grid %>% 
+      select(numM, numF, num) %>% 
+      distinct_all()
+  )
+res_model_pref_cond$CI_u <- as.data.frame(res_model_pref_cond$CI_u) %>%
+  left_join(
+    data_cond$grid %>%
+      select(numM, numF, num) %>%
+      distinct_all()
+  )
+res_model_pref_cond$CI_l <- as.data.frame(res_model_pref_cond$CI_l) %>%
+  left_join(
+    data_cond$grid %>%
+      select(numM, numF, num) %>%
+      distinct_all()
+  )
