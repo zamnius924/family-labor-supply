@@ -143,10 +143,9 @@ res_model_pref_hetero$elast_cross
 
 ### Гетерогенность по доходу
 source("arrangers/data_mod_cond.R")
-
 data_cond
-source("scripts/model_pref_cond.R")
 
+source("scripts/model_pref_cond.R")
 res_model_pref_cond
 
 source("scripts/plot_pref_cond_own_3d.R")
@@ -154,3 +153,6 @@ plot_pref_cond_own_3d$fig
 
 source("scripts/plot_pref_cond_cross_3d.R")
 plot_pref_cond_cross_3d$fig
+
+source("scripts/plot_pref_cond_own_2d.R")
+plot_pref_cond_own_2d$fig
