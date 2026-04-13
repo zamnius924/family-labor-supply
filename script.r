@@ -125,5 +125,3 @@ res_model_pref
 ### Бутстрап
 source("scripts/bootstrap.R")
 results
-
-

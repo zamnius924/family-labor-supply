@@ -914,13 +914,21 @@ internal_fit <- function(kap, sig, df) {
   ###### Теоретические моменты ###### 
   moments_sim <- data.frame(year = first_year:last_year) %>% 
     mutate(
-      sigma_vM = sigma_vM, sigma_uM = sigma_uM,
-      sigma_vF = sigma_vF, sigma_uF = sigma_uF,
-      cov_uMF = cov_uMF, cov_vMF = cov_vMF,
-      sigma_epsM = sigma_epsM, sigma_epsF = sigma_epsF,
-      sigma_gammaM = sigma_gammaM, sigma_gammaF = sigma_gammaF,
-      sigma_psiM = sigma_psiM, sigma_psiF = sigma_psiF,
-      sigma_delta = sigma_delta) %>%
+      sigma_vM = sigma_vM, 
+      sigma_uM = sigma_uM,
+      sigma_vF = sigma_vF, 
+      sigma_uF = sigma_uF,
+      cov_uMF = cov_uMF, 
+      cov_vMF = cov_vMF,
+      sigma_epsM = sigma_epsM, 
+      sigma_epsF = sigma_epsF,
+      sigma_delta = sigma_delta,
+
+      sigma_gammaM = sigma_gammaM, 
+      sigma_gammaF = sigma_gammaF,
+      sigma_psiM = sigma_psiM, 
+      sigma_psiF = sigma_psiF
+    ) %>%
     mutate(
       cov_eps_gammaM = sigma_gammaM - 0.5 * (sigma_gammaM + sigma_psiM - sigma_epsM),
       cov_eps_gammaF = sigma_gammaF - 0.5 * (sigma_gammaF + sigma_psiF - sigma_epsF)) %>% 
@@ -1045,9 +1053,11 @@ internal_fit <- function(kap, sig, df) {
         lag(sigma_uM) * k_hF_uM,
       dLyF_dwM = - lag(cov_uMF) * (1 + k_hF_uF) -
         lag(sigma_uM) * k_hF_uM) %>% 
-    select(-sigma_vM, -sigma_uM, -sigma_vF, -sigma_uF, -cov_uMF, -cov_vMF,
+    select(
+      -sigma_vM, -sigma_uM, -sigma_vF, -sigma_uF, -cov_uMF, -cov_vMF,
       -sigma_epsM, -sigma_epsF, -sigma_gammaM, -sigma_gammaF, -sigma_psiM, -sigma_psiF,
-      -sigma_delta, -cov_eps_gammaM, -cov_eps_gammaF) %>%
+      -sigma_delta, -cov_eps_gammaM, -cov_eps_gammaF
+    ) %>%
     apply(2, mean, na.rm = TRUE)
   
   ###### Эмпирические моменты ######
