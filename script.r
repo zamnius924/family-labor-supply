@@ -131,3 +131,6 @@ source("scripts/model_pref_hetero.R")
 res_model_pref_hetero
 
 source("scripts/bootstrap_pref_hetero.R")
+res_model_pref_hetero$table
+res_model_pref_hetero$elast_own
+res_model_pref_hetero$elast_cross
