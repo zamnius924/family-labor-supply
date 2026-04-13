@@ -432,6 +432,131 @@ results_first_stage_diff <- function(df, model_wM, model_wF, model_c, model_yM, 
 
 
 
+# Оценка модели первого шага ---------------------------
+GMM_model_wage <- function(kap, data) {
+
+  ### Предопределение переменных
+  kap <- split(kap, rep(1:13, c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)))
+  sigma_vM <- kap[[1]]
+  sigma_uM <- kap[[2]]
+  sigma_vF <- kap[[3]]
+  sigma_uF <- kap[[4]]
+  cov_uMF <- kap[[5]]
+  cov_vMF <- kap[[6]]
+  sigma_epsM <- kap[[7]]
+  sigma_epsF <- kap[[8]]
+  sigma_delta <- kap[[9]]
+  k_c_uM <- kap[[10]]
+  k_c_vM <- kap[[11]]
+  k_c_uF <- kap[[12]]
+  k_c_vF <- kap[[13]]
+
+
+  ###### Теоретические моменты ###### 
+  moments_sim <- data.frame(year = first_year:last_year) %>% 
+    mutate(
+      sigma_vM = sigma_vM, 
+      sigma_uM = sigma_uM,
+      sigma_vF = sigma_vF, 
+      sigma_uF = sigma_uF,
+      cov_uMF = cov_uMF, 
+      cov_vMF = cov_vMF,
+      sigma_epsM = sigma_epsM, 
+      sigma_epsF = sigma_epsF, 
+      sigma_delta = sigma_delta
+    ) %>% 
+    mutate(
+      dwM_dwM = (sigma_uM + lag(sigma_uM)) +
+        sigma_vM +
+        (sigma_epsM + lag(sigma_epsM)),
+      dwM_dLwM = - lag(sigma_uM) -
+        lag(sigma_epsM),
+      dwF_dwF = (sigma_uF + lag(sigma_uF)) +
+        sigma_vF +
+        (sigma_epsF + lag(sigma_epsF)),
+      dwF_dLwF = - lag(sigma_uF) -
+        lag(sigma_epsF),
+      dwM_dwF = (cov_uMF + lag(cov_uMF)) +
+        cov_vMF, # + (sigma_eps + lag(sigma_eps))
+      dwM_dLwF = - lag(cov_uMF), # lag(sigma_eps)
+      dLwM_dwF = - lag(cov_uMF), # lag(sigma_eps)
+      dc_dc = (sigma_uM + lag(sigma_uM)) * k_c_uM^2 +
+        (sigma_uF + lag(sigma_uF)) * k_c_uF^2 +
+        sigma_vM * k_c_vM^2 +
+        sigma_vF * k_c_vF^2 +
+        (sigma_delta + lag(sigma_delta)) +
+        (cov_uMF + lag(cov_uMF)) * 2 * k_c_uM * k_c_uF +
+        cov_vMF * 2 * k_c_vM * k_c_vF,
+      dc_dLc = - lag(sigma_uM) * k_c_uM^2 -
+        lag(sigma_uF) * k_c_uF^2 -
+        lag(sigma_delta) -
+        lag(cov_uMF) * 2 * k_c_uM * k_c_uF,
+      dc_dwM = (sigma_uM + lag(sigma_uM)) * k_c_uM +
+        sigma_vM * k_c_vM +
+        (cov_uMF + lag(cov_uMF)) * k_c_uF +
+        cov_vMF * k_c_vF,
+      dc_dwF = (sigma_uF + lag(sigma_uF)) * k_c_uF +
+        sigma_vF * k_c_vF +
+        (cov_uMF + lag(cov_uMF)) * k_c_uM +
+        cov_vMF * k_c_vM,
+      dc_dLwM = - lag(sigma_uM) * k_c_uM -
+        lag(cov_uMF) * k_c_uF,
+      dc_dLwF = - lag(sigma_uF) * k_c_uF -
+        lag(cov_uMF) * k_c_uM,
+      dLc_dwM = - lag(sigma_uM) * k_c_uM -
+        lag(cov_uMF) * k_c_uF,
+      dLc_dwF = - lag(sigma_uF) * k_c_uF -
+        lag(cov_uMF) * k_c_uM
+    ) %>% 
+    select(
+      -sigma_vM, -sigma_uM, -sigma_vF, -sigma_uF, -cov_uMF, -cov_vMF,
+      -sigma_epsM, -sigma_epsF, -sigma_delta
+    )
+  
+  moments_sim <- moments_sim %>% 
+    pivot_longer(!year, names_to = "name") %>% 
+    arrange(factor(name, levels = colnames(moments_sim)[-1]))
+  
+
+  ###### Эмпирические моменты ######
+  moments_emp <- data %>% 
+    group_by(year) %>% 
+    summarise(
+      dwM_dwM = mean(dwM * dwM, na.rm = TRUE),
+      dwM_dLwM = mean(dwM * dLwM, na.rm = TRUE),
+      dwF_dwF = mean(dwF * dwF, na.rm = TRUE),
+      dwF_dLwF = mean(dwF * dLwF, na.rm = TRUE),
+      dwM_dwF = mean(dwM * dwF, na.rm = TRUE),
+      dwM_dLwF = mean(dwM * dLwF, na.rm = TRUE),
+      dLwM_dwF = mean(dLwM * dwF, na.rm = TRUE),
+      dc_dc = mean(dc * dc, na.rm = TRUE),
+      dc_dLc = mean(dc * dLc, na.rm = TRUE),
+      dc_dwM = mean(dc * dwM, na.rm = TRUE),
+      dc_dwF = mean(dc * dwF, na.rm = TRUE),
+      dc_dLwM = mean(dc * dLwM, na.rm = TRUE),
+      dc_dLwF = mean(dc * dLwF, na.rm = TRUE),
+      dLc_dwM = mean(dLc * dwM, na.rm = TRUE),
+      dLc_dwF = mean(dLc * dwF, na.rm = TRUE)
+    )
+  
+  moments_emp <- moments_emp %>% 
+    pivot_longer(!year, names_to = "name") %>% 
+    arrange(factor(name, levels = colnames(moments_emp)[-1]))
+  
+  V <- mean((moments_emp$value - moments_sim$value) ** 2, na.rm = TRUE)
+
+  #print(kap)
+  #print(V)
+
+  return(V)
+
+}
+
+
+
+
+
+
 moments <- function(data, N, T, times, sims, kap, sig) {
   ###### Симулированные моменты ######
   

@@ -98,8 +98,10 @@ source("arrangers/data_full.R")
 
 
 # models -----------------------------------------
-source("functions/models_stage_1.R")
-data <- models_stage_1(data)
+source("scripts/model_stage_1.R")
 
 # Создание переменных для GMM
 source("arrangers/data_mod.R")
+
+
+source("scripts/model_stage_2.R")
