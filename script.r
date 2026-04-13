@@ -11,6 +11,8 @@
   library(tibble)
   library(latex2exp)
   library(patchwork)
+  library(collapse)
+  library(broom)
 }
 
 source("functions/rlms_fix.R")
@@ -137,4 +139,6 @@ res_model_pref_hetero$elast_own
 res_model_pref_hetero$elast_cross
 
 ### Гетерогенность по доходу
+source("arrangers/data_mod_cond.R")
 
+data_cond
