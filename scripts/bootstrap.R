@@ -1,6 +1,11 @@
 sample_index <- unique(data_mod$id_hh)
 
-boot_results <- boot(sample_index, bootstrap, R = B, parallel = "multicore", ncpus = 4)
+boot_results <- boot(
+  sample_index,
+  bootstrap,
+  R = B,
+  parallel = "multicore",
+  ncpus = 8)
 
 # Таблица с оценками и значимостями
 results <- t(cbind(
