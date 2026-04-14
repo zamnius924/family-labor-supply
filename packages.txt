@@ -1,0 +1,18 @@
+# R package dependencies for the labour supply elasticity project
+# Install with: install.packages(readLines("packages.txt"))
+
+rlms
+dplyr
+plm
+readxl
+tidyr
+ggplot2
+haven
+pracma
+boot
+tibble
+latex2exp
+patchwork
+collapse
+broom
+plotly
