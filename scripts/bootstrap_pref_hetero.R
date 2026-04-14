@@ -7,9 +7,9 @@ for (k in 1:4) {
   boot_pref_hetero <- boot(
     sample_index,
     bootstrap_hetero,
-    R = 5, 
+    R = B, 
     parallel = "multicore",
-    ncpus = 8,
+    ncpus = ncpus,
     k = k)
   
   res_model_pref_hetero$sd[[k]] <- apply(boot_pref_hetero[["t"]][,1:8], 2, sd)

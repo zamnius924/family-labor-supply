@@ -17,26 +17,19 @@
 }
 
 source("functions/rlms_fix.R")
-#source("functions/add_functions.R")
 
-{
-  setwd("/Users/alexey/Desktop/Labor market research/data/RLMS_1994_2020 (28.VI.2022)")
-
-  rlms <- list(
-    # данные об индивидах
-    all_data_ind = rlms_read("USER_RLMS-HSE_IND_1994_2020_v4_rus.sav"),
-    # данные о д/х
-    all_data_hh = rlms_read("USER_RLMS-HSE_HH_1994_2020_rus.sav"),
-    # файл с доходами и расходами
-    all_data_add = rlms_read("Доходы и расходы.sav"),
-    # файл с родственными связями
-    all_code_rel = read_sav("Идентификационные номера родственников.sav"),
-    # файл с кодами индивидов
-    all_code_ind = read_sav("Идентификационные номера индивидов.sav")
-  )
-
-  setwd("/Users/alexey/Desktop/Labor market research/code/Blundell & Co./repository")
-}
+rlms <- list(
+  # данные об индивидах
+  all_data_ind = rlms_read("data/USER_RLMS-HSE_IND_1994_2020_v4_rus.sav"),
+  # данные о д/х
+  all_data_hh = rlms_read("data/USER_RLMS-HSE_HH_1994_2020_rus.sav"),
+  # файл с доходами и расходами
+  all_data_add = rlms_read("data/Доходы и расходы.sav"),
+  # файл с родственными связями
+  all_code_rel = read_sav("data/Идентификационные номера родственников.sav"),
+  # файл с кодами индивидов
+  all_code_ind = read_sav("data/Идентификационные номера индивидов.sav")
+)
 
 source("arrangers/source_data.R")
 
@@ -46,28 +39,21 @@ rm(rlms)
 
 
 # Преобразование файлов с дополнительными данными -------------------------
-# Параметры выборки
-first_year <- 2000
-last_year <- 2019
-period <- last_year - first_year + 1
-
-# Дополнительные параметры
-B <- 5
-
+source("params.R")
 
 ### Импортируем дополнительные файлы
 add_sources <- list(
   # ИПЦ региональный
   CPI_reg = read_excel(
-    "/Users/alexey/Desktop/Labor market research/data/CPI_reg_2.xlsx"
+    "data/CPI_reg.xlsx"
   ),
   # Выходные в году
   days = read_excel(
-    "/Users/alexey/Desktop/Labor market research/data/days.xlsx"
+    "data/days.xlsx"
   ),
   # ВРП
   GRP = read_excel(
-    "~/Desktop/Labor market research/data/grp/grp.xlsx", 
+    "data/grp.xlsx", 
     sheet = 3
   ) %>% 
     pivot_longer(
@@ -77,7 +63,7 @@ add_sources <- list(
     ) %>% 
     mutate(year = as.numeric(year)),
   # МРОТ
-  fed_dist = read_excel("/Users/alexey/Desktop/Labor market research/data/federal wage minimum/fed_min.xlsx")
+  fed_dist = read_excel("data/fed_min.xlsx")
 )
 
 source("arrangers/source_cpi.R")
@@ -156,7 +142,6 @@ source("functions/GMM_cond_utils.R")
 source("arrangers/data_mod_cond.R")
 
 source("scripts/model_pref_cond.R")
-res_model_pref_cond
 
 source("scripts/plot_pref_cond_own_3d.R")
 plot_pref_cond_own_3d$fig

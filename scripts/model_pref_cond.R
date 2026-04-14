@@ -86,9 +86,9 @@ for (t in 1:length(unique(data_cond$grid$num))) {
   boot_pref_cond <- boot(
     sample_index,
     bootstrap_cond,
-    R = 5,
+    R = B,
     parallel = "multicore", 
-    ncpus = 8,
+    ncpus = ncpus,
     t = t
   )
   

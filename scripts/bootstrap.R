@@ -5,7 +5,7 @@ boot_results <- boot(
   bootstrap,
   R = B,
   parallel = "multicore",
-  ncpus = 8)
+  ncpus = ncpus)
 
 # Таблица с оценками и значимостями
 results <- t(cbind(
