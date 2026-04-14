@@ -1,4 +1,10 @@
-# Прямые коэффициенты эластичности
+# ============================================================================
+# plot_pref_hetero.R
+# ----------------------------------------------------------------------------
+# Visualise own and cross elasticities across education groups.
+# ============================================================================
+
+# Own elasticities (Frisch and Marshall for each spouse)
 res_model_pref_hetero$elast_own <- res_model_pref_hetero$table %>% 
   subset(par %in% c("k_hM_uM", "k_hM_vM", "k_hF_uF", "k_hF_vF")) %>% 
   mutate(elasticity = case_when(
@@ -41,9 +47,7 @@ res_model_pref_hetero$elast_own <- res_model_pref_hetero$table %>%
   theme_bw() +
   theme(legend.position = "bottom")
 
-
-
-# Перекрестные коэффициенты эластичности
+# Cross elasticities
 res_model_pref_hetero$elast_cross <- res_model_pref_hetero$table %>% 
   subset(par %in% c("k_hM_uF", "k_hM_vF", "k_hF_uM", "k_hF_vM")) %>% 
   mutate(elasticity = case_when(

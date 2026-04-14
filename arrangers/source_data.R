@@ -1,7 +1,15 @@
+# ============================================================================
+# source_data.R
+# ----------------------------------------------------------------------------
+# Build the initial data_source list by linking RLMS individual, household,
+# and kinship files. Create cross‑walk identifiers for individuals and spouses.
+# ============================================================================
+
 data_source <- list()
 
-### Исправление кодов
-# Создадим таблицу с кодами индивидов
+# ------------------------------------------------------------
+# Individual identifier cross‑walk
+# ------------------------------------------------------------
 data_source$code_ind <- rlms$all_code_ind %>% 
   select(
     id_ind = idind, sex, aid_i, bid_i, cid_i, did_i,
@@ -17,22 +25,21 @@ data_source$code_ind <- rlms$all_code_ind %>%
   ) %>%
   arrange(id_ind, id_i_name)
 
-# Создадим таблицу с кодами волн
+# Wave identifiers
 data_source$code_year <- rlms$all_data_ind %>% 
   select(id_w, year) %>%
   distinct() %>% 
   arrange(year) %>%
   mutate(id_i_name = unique(data_source$code_ind$id_i_name))
 
-# Создадим таблицу с кодами индивидов и волн
-# Здесь представлены индивиды, участвовавшие когда-либо в опросе, даже за годы,
-# когда они не проходили интервью
+# Combine: each individual in each wave gets a wave‑specific identifier
 data_source$code_ind <- data_source$code_ind %>% 
   left_join(data_source$code_year) %>% 
   relocate(id_i, .after = id_ind)
 
-
-### ОБД индивиды
+# ------------------------------------------------------------
+# Individual‑level data
+# ------------------------------------------------------------
 data_source$data_ind <- rlms$all_data_ind %>% 
   select(
     id_w, id_h, id_ind = idind, id_i,
@@ -47,18 +54,15 @@ data_source$data_ind <- rlms$all_data_ind %>%
     regular = j58, vacation = j21b, vac_status = j1, region) %>% 
   arrange(id_ind, year)
 
-# Исправим коды в файле с индивидами
+# Replace raw id_i with the cross‑walked version
 data_source$data_ind <- data_source$data_ind %>%
   select(-id_i) %>% left_join(data_source$code_ind)
 
-# Здесь не должно быть пропусков
-summary(data_source$data_ind$id_i)
-summary(data_source$data_ind$id_h)
-
-
-### ОБД домохозяства
-# non-durable consumption data
-data_source$data_consump_nd_hh <- rlms$all_data_hh %>% # сюда добавляем переменные по потреблению
+# ------------------------------------------------------------
+# Household‑level data
+# ------------------------------------------------------------
+# Non‑durable consumption components
+data_source$data_consump_nd_hh <- rlms$all_data_hh %>%
   select(e4, e8.1b, e8.2b, e8.3b, e9.1b,
     e9.2b, e9.3b, e9.4b, e9.4.1b, e9.5b,
     e9.6b, e9.7b, e9.8b, e9.9b, e9.10b,
@@ -67,79 +71,72 @@ data_source$data_consump_nd_hh <- rlms$all_data_hh %>% # сюда добавля
     e13.32b, e13.33b, e13.34b, e13.4b, e13.12b,
     e13.13b)
 data_source$consump_nd_names <- paste(
-    "consump_nd_", 
-    1:ncol(data_source$data_consump_nd_hh),
-    sep = "") # название всех переменных потребления
+  "consump_nd_",
+  1:ncol(data_source$data_consump_nd_hh),
+  sep = ""
+) 
 colnames(data_source$data_consump_nd_hh) <- data_source$consump_nd_names
 
-# Характеристики д/х
+# Household characteristics
 data_source$data_hh <- rlms$all_data_hh %>%
   select(id_w, id_h, num_head = a8, nfm) %>%
   cbind(., data_source$data_consump_nd_hh) %>%
   arrange(id_h, id_w)
 
-# Здесь не должно быть пропусков
-summary(data_source$data_hh$id_h)
-
-# Удаляем вспомогательные данные по д/х
 data_source[c("data_consump_nd_hh")] <- NULL
 
-# Создадим недлительное потребление
+# Total non‑durable consumption (monthly, then annualised)
 data_source$data_hh$consump_nd <- data_source$data_hh %>%
   select(all_of(data_source$consump_nd_names)) %>% 
   apply(1, sum, na.rm = TRUE)
-data_source$data_hh$consump_nd <- data_source$data_hh$consump_nd * 12 # переводим в годовое измерение
+data_source$data_hh$consump_nd <- data_source$data_hh$consump_nd * 12
 
-
-### Дополнительные данные 
-# Данные по доходам и расходам
+# ------------------------------------------------------------
+# Additional household characteristics (children, working‑age members)
+# ------------------------------------------------------------
 data_source$data_add <- rlms$all_data_add %>%
   select(id_h, id_w, child_lit = ncat1, child_teen = ncat2, work_age_m = ncat3,
     work_age_f = ncat4, nwork_age_m = ncat5, nwork_age_f = ncat6)
 
-# Здесь не должно быть пропусков
-summary(data_source$data_add$id_h)
-
-# Коды по отношениям
+# ------------------------------------------------------------
+# Kinship links (spouse identifiers)
+# ------------------------------------------------------------
 data_source$code_rel <- rlms$all_code_rel %>% 
   select(id_w = id_w, id_i = id_i, id_i_part = r01a1) %>%
   arrange(id_i, id_w)
 
-# Здесь не должно быть пропусков
-summary(data_source$code_rel$id_i)
-
-
-### Модифицируем коды индивидом
-# Добавим к кодам индивида адрес репрезентативной выборки
+# ------------------------------------------------------------
+# Augment the cross‑walk with spouse information and representativeness
+# ------------------------------------------------------------
 data_source$code_ind <- data_source$code_ind %>%
   left_join(
     data_source$data_ind %>% select(id_ind, year, origsm)
-  ) %>%  # Адрес репрезентативной выборки
+  ) %>% 
   arrange(id_ind)
 
-# Добавим к кодам индивида коды супругов id_i_part
+# Add id_i_part codes
 data_source$code_ind <- data_source$code_ind %>% 
   left_join(data_source$code_rel)
 
-# Добавим к кодам индивида коды супругов id_part
+# Add id_part codes
 data_source$code_ind <- data_source$code_ind %>% 
   left_join(
     data_source$code_ind %>% select(id_part = id_ind, year, id_i_part = id_i),
     na_matches = "never"
   )
 
-# Добавим супружеский статус
+# Add marital status
 data_source$code_ind <- data_source$code_ind %>% 
   left_join(
     data_source$data_ind %>% select(id_i, year, family)
   )
 
-# Переставим столбцы местами
 data_source$code_ind <- data_source$code_ind %>%
   select(year, id_ind, id_i, id_part, id_i_part, origsm, family, sex)
 
-
-### Сделаем в данных переменную для регионов
+# ------------------------------------------------------------
+# Map numeric region codes to readable names
+# ------------------------------------------------------------
 data_source$data_ind <- data_source$data_ind %>% 
   mutate(region_rus = case_when(
     region == 1 ~ "Ленинградская область", 

@@ -1,9 +1,12 @@
-# 3D графики --------------------------------------------------------------
+# ============================================================================
+# plot_pref_cond_cross_3d.R
+# ----------------------------------------------------------------------------
+# 3D surface plots of cross elasticities (spouse's wage on own labour supply).
+# ============================================================================
 
 plot_pref_cond_cross_3d <- list()
 
-### Перекрестные коэффициенты эластичности
-# Фриш
+# Male cross Frisch elasticity (k_hM_uF)
 plot_pref_cond_cross_3d$fig1 <- plot_ly(
   x = seq(-1.5, 1.5, length.out = data_cond$grid_size),
   y = seq(-1.5, 1.5, length.out = data_cond$grid_size),
@@ -40,14 +43,15 @@ plot_pref_cond_cross_3d$fig1 <- plot_ly(
     colorscale = list(c(0, 1), c("rgb(255,107,184)", "rgb(128,0,64)"))
   ) %>% 
   layout(scene = list(
-    xaxis = list(title = "Male income"), # "Male income (in standard deviations)"
-    yaxis = list(title = "Female income"), # Female income (in standard deviations)
-    zaxis = list(title = "Male Frisch cross-elasticity"), # Male Frisch labor supply elasticity
+    xaxis = list(title = "Male income"),
+    yaxis = list(title = "Female income"),
+    zaxis = list(title = "Male Frisch cross-elasticity"),
     camera = list(eye = list(x = -1.5, y = -1.5, z = 0.3))
   )) %>% 
   #config(mathjax = "cdn") %>%
   hide_colorbar()
 
+# Female cross Frisch elasticity (k_hF_uM)
 plot_pref_cond_cross_3d$fig2 <- plot_ly(
   x = seq(-1.5, 1.5, length.out = data_cond$grid_size),
   y = seq(-1.5, 1.5, length.out = data_cond$grid_size),
@@ -91,7 +95,7 @@ plot_pref_cond_cross_3d$fig2 <- plot_ly(
   )) %>% 
   hide_colorbar()
 
-# Маршалл
+# Male cross Marshall elasticity (k_hM_vF)
 plot_pref_cond_cross_3d$fig3 <- plot_ly(
   x = seq(-1.5, 1.5, length.out = data_cond$grid_size),
   y = seq(-1.5, 1.5, length.out = data_cond$grid_size),
@@ -135,6 +139,7 @@ plot_pref_cond_cross_3d$fig3 <- plot_ly(
   )) %>% 
   hide_colorbar()
 
+# Female cross Marshall elasticity (k_hF_vM)
 plot_pref_cond_cross_3d$fig4 <- plot_ly(
   x = seq(-1.5, 1.5, length.out = data_cond$grid_size),
   y = seq(-1.5, 1.5, length.out = data_cond$grid_size),
@@ -178,6 +183,7 @@ plot_pref_cond_cross_3d$fig4 <- plot_ly(
   )) %>% 
   hide_colorbar()
 
+# Combine all four subplots
 plot_pref_cond_cross_3d$fig <- subplot(
   plot_pref_cond_cross_3d$fig1,
   plot_pref_cond_cross_3d$fig2,
@@ -185,46 +191,35 @@ plot_pref_cond_cross_3d$fig <- subplot(
   plot_pref_cond_cross_3d$fig4
 )
 
+# Arrange layouts
 plot_pref_cond_cross_3d$fig <- plot_pref_cond_cross_3d$fig %>% 
   layout(
     scene = list(
       domain = list(x = c(0, 0.7), y = c(0.5, 1)),
       aspectmode = "cube",
-      #xaxis = list(title = "Male income"), # "Male income (in standard deviations)"
-      #yaxis = list(title = "Female income"), # Female income (in standard deviations)
-      #zaxis = list(title = "Male Frisch cross-elasticity")),
-      xaxis = list(title = "Доход мужа"),
-      yaxis = list(title = "Доход жены"),
-      zaxis = list(title = "Эластичность по Фришу для мужчин")
+      xaxis = list(title = "Male income"),
+      yaxis = list(title = "Female income"),
+      zaxis = list(title = "Male Frisch cross-elasticity")
     ),
     scene2 = list(
       domain = list(x = c(0.3, 1), y = c(0.5, 1)),
       aspectmode = "cube",
-      #xaxis = list(title = "Male income"),
-      #yaxis = list(title = "Female income"),
-      #zaxis = list(title = "Female Frisch cross-elasticity")),
-      xaxis = list(title = "Доход мужа"),
-      yaxis = list(title = "Доход жены"),
-      zaxis = list(title = "Эластичность по Фришу для женщин")
+      xaxis = list(title = "Male income"),
+      yaxis = list(title = "Female income"),
+      zaxis = list(title = "Female Frisch cross-elasticity")
     ),
     scene3 = list(
       domain = list(x = c(0, 0.7), y = c(0, 0.5)),
       aspectmode = "cube",
-      #xaxis = list(title = "Male income"),
-      #yaxis = list(title = "Female income"),
-      #zaxis = list(title = "Male Marshallian cross-elasticity")),
-      xaxis = list(title = "Доход мужа"),
-      yaxis = list(title = "Доход жены"),
-      zaxis = list(title = "Эластичность по Маршаллу для мужчин")
+      xaxis = list(title = "Male income"),
+      yaxis = list(title = "Female income"),
+      zaxis = list(title = "Male Marshallian cross-elasticity")
     ),
     scene4 = list(
       domain = list(x = c(0.3, 1), y = c(0, 0.5)),
       aspectmode = "cube",
-      #xaxis = list(title = "Male income"),
-      #yaxis = list(title = "Female income"),
-      #zaxis = list(title = "Female Marshallian cross-elasticity")))
-      xaxis = list(title = "Доход мужа"),
-      yaxis = list(title = "Доход жены"),
-      zaxis = list(title = "Эластичность по Мрашаллу для женщин")
+      xaxis = list(title = "Male income"),
+      yaxis = list(title = "Female income"),
+      zaxis = list(title = "Female Marshallian cross-elasticity")
     )
   )

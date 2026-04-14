@@ -1,3 +1,10 @@
+# ============================================================================
+# data_mod_hetero.R
+# ----------------------------------------------------------------------------
+# Augment data_mod with education categories for both spouses.
+# Produces 'data_mod_hetero'.
+# ============================================================================
+
 data_mod_hetero <- data_mod %>% 
   left_join(
     data %>% 
@@ -9,21 +16,21 @@ data_mod_hetero <- data_mod %>%
   ) %>% 
   mutate(
     educM = case_when(
-      diplom_lev == 4 ~ 1, # 1 -- есть вышее
-      diplom_lev != 4 ~ 2  # 2 -- нет высшего
+      diplom_lev == 4 ~ 1, # 1 = higher education
+      diplom_lev != 4 ~ 2  # 2 = no higher education
     ),  
     educF = case_when(
-      diplom_lev_part == 4 ~ 1, # 1 -- есть вышее
-      diplom_lev_part != 4 ~ 2  # 2 -- нет высшего
+      diplom_lev_part == 4 ~ 1, # 1 = higher education
+      diplom_lev_part != 4 ~ 2  # 2 = no higher education
     )
   )
 
 data_mod_hetero <- data_mod_hetero %>% 
   mutate(
     educ = case_when(
-      educM == 1 & educF == 1 ~ 1, # М -- есть высшее, Ж -- есть высшее
-      educM == 1 & educF == 2 ~ 2, # М -- есть высшее, Ж -- нет высшего
-      educM == 2 & educF == 1 ~ 3, # М -- нет высшего, Ж -- есть высшее
-      educM == 2 & educF == 2 ~ 4  # М -- нет высшего, Ж -- нет высшего
+      educM == 1 & educF == 1 ~ 1, # both higher
+      educM == 1 & educF == 2 ~ 2, # only male higher
+      educM == 2 & educF == 1 ~ 3, # only female higher
+      educM == 2 & educF == 2 ~ 4  # neither higher
     )
   )

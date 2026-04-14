@@ -1,3 +1,10 @@
+# ============================================================================
+# model_stage_2.R
+# ----------------------------------------------------------------------------
+# GMM estimation of the wage process parameters
+# ============================================================================
+
+# Initial values and bounds for the wage parameters
 start_model_wage <- list(
   bounds = data.frame(
     xmin = c(
@@ -48,6 +55,7 @@ start_model_wage$start <- c(
   0.15 # k_c_vF
 )
 
+# Optimisation
 model_wage <- fmincon(
   fn = GMM_model_wage,
   data = data_mod,
@@ -56,6 +64,7 @@ model_wage <- fmincon(
   ub = start_model_wage$bounds$xmax
 )
 
+# Store results as a named list (last element is convergence + criterion)
 res_model_wage <- c(model_wage$par, model_wage$convergence, model_wage$value)
 res_model_wage <- split(
   res_model_wage, 

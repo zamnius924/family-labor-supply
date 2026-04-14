@@ -1,10 +1,16 @@
-# Добавление данных партнера ----------------------------------------------
-# Получаем выборку на уровне д/х
+# ============================================================================
+# data_full.R
+# ----------------------------------------------------------------------------
+# Convert individual‑level data into household‑level data by matching spouses.
+# Produces 'data' (household panel).
+# ============================================================================
+
+
 data <- data_ind %>% 
-  partner_merge(., data_source) %>% # добавляем данные партнера
-  partner_df(.) %>% # чистим данные партнеров
-  partner_id() %>% # создаем уникальный id пары
-  select( # Отбираем необходимые метрики
+  partner_merge(., data_source) %>% # attach spouse variables
+  partner_df(.) %>% # keep only couples, male as reference
+  partner_id() %>% # create unique household id
+  select( 
     id_hh, id_ind, id_part, year, sex, sex_part, 
     sum_working, sum_working_part, wage, wage_part,
     earn, earn_part, consump_nd, lab_sup_year, lab_sup_year_part, 

@@ -1,4 +1,16 @@
-# Оценка модели с гетерогенностью по уровню образования
+# ============================================================================
+# GMM_hetero_utils.R
+# ----------------------------------------------------------------------------
+# GMM objective function and bootstrap helper for preference heterogeneity
+# by education level (four groups based on higher education of spouses).
+#
+# Dependencies:  params.R (first_year, last_year)
+#                data_mod_hetero (created by arrangers/data_mod_hetero.R)
+#                res_model_wage, res_model_pref (from model_stage_2.R, model_stage_3.R)
+# Called by:     scripts/model_pref_hetero.R, scripts/bootstrap_pref_hetero.R
+# ============================================================================
+
+#' GMM objective for preference parameters with education heterogeneity
 GMM_model_pref_hetero <- function(kap, sig_1, sig_2, data) {
   
   ### Предопределение переменных
@@ -29,7 +41,7 @@ GMM_model_pref_hetero <- function(kap, sig_1, sig_2, data) {
   k_c_uF <- sig_1[[12]]
   k_c_vF <- sig_1[[13]]
   
-  ###### Теоретические моменты ######
+  # Theoretical moments
   moments_sim <- data.frame(year = first_year:last_year) %>% 
     mutate(
       sigma_vM = sigma_vM, 
@@ -137,8 +149,7 @@ GMM_model_pref_hetero <- function(kap, sig_1, sig_2, data) {
     pivot_longer(!year, names_to = "name") %>% 
     arrange(factor(name, levels = colnames(moments_sim)[-1]))
   
-
-  ###### Эмпирические моменты ######
+  # Empirical moments
   moments_emp <- data %>% 
     group_by(year) %>%
     summarise(
@@ -176,14 +187,14 @@ GMM_model_pref_hetero <- function(kap, sig_1, sig_2, data) {
 
 }
 
-
+#' Bootstrap function for education heterogeneity
 bootstrap_hetero <- function(hh, i, k) {
   
-  # Бутстраповская подвыборка
+  # Bootstrap sample of households
   boot_sample <- data.frame(id_hh = hh[i]) %>%
     left_join(data_mod_hetero %>% subset(educ == k))
   
-  # Оценка модели
+  # Preference model estimation
   boot_model_pref_hetero <- fmincon(
     fn = GMM_model_pref_hetero,
     sig_1 = res_model_wage,

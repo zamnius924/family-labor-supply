@@ -1,15 +1,18 @@
-# 2D графики --------------------------------------------------------------
+# ============================================================================
+# plot_pref_cond_own_2d.R
+# ----------------------------------------------------------------------------
+# 2D line plots of own Frisch elasticities for selected income percentiles.
+# ============================================================================
 
 plot_pref_cond_own_2d <- list()
 
-### Прямые коэффициенты эластичности
-# Оценки коэффициентов
+# Subset data for selected husband income levels (numM = 0.3, 0.9, 1.5)
 plot_pref_cond_own_2d$coefM <- res_model_pref_cond$coef %>% 
   subset(numM %in% c("0.3", "0.9", "1.5"))
 plot_pref_cond_own_2d$coefF <- res_model_pref_cond$coef %>%
   subset(numF %in% c("0.3", "0.9", "1.5")) # numF >= 0
 
-# Доверительные интервалы
+# Prepare confidence intervals for male elasticities
 plot_pref_cond_own_2d$CIM <- rbind(
   res_model_pref_cond$CI_u %>% mutate(type = "u"), 
   res_model_pref_cond$CI_l %>% mutate(type = "l")
@@ -19,6 +22,8 @@ plot_pref_cond_own_2d$CIM <- rbind(
     names_from = type,
     values_from = !c(num, numM, numF, type)
   )
+
+# For female elasticities
 plot_pref_cond_own_2d$CIF <- rbind(
   res_model_pref_cond$CI_u %>% mutate(type = "u"), 
   res_model_pref_cond$CI_l %>% mutate(type = "l")
@@ -29,7 +34,7 @@ plot_pref_cond_own_2d$CIF <- rbind(
     values_from = !c(num, numM, numF, type)
   )
 
-# График: эластичности для мужчин
+# Plot: male own Frisch elasticity as function of wife's income
 plot_pref_cond_own_2d$fig1 <- ggplot() +
   geom_line(
     data = plot_pref_cond_own_2d$coefM, 
@@ -84,17 +89,16 @@ plot_pref_cond_own_2d$fig1 <- ggplot() +
     linetype = "dashed"
   ) +
   #ylim(-0.1, 1.2) +
-  #labs(x = "Female income", y = "Male Frisch elasticity", color = "Male income", fill = "Male income") +
   labs(
-    x = "Доход жены",
-    y = "Эластиность по Фришу для мужчин",
-    color = "Доход мужа",
-    fill = "Доход мужа"
+    x = "Female income",
+    y = "Male Frisch elasticity",
+    color = "Male income",
+    fill = "Male income"
   ) +
   theme_classic() + 
   theme(legend.position = "bottom")
 
-# График: эластичности для женщин
+# Plot: female own Frisch elasticity as function of husband's income
 plot_pref_cond_own_2d$fig2 <- ggplot() +
   geom_line(
     data = plot_pref_cond_own_2d$coefF,
@@ -149,16 +153,15 @@ plot_pref_cond_own_2d$fig2 <- ggplot() +
     linetype = "dashed"
   ) +
   #ylim(-0.1, 1.2) +
-  #labs(x = "Male income", y = "Female Frisch elasticity", color = "Female income", fill = "Female income") +
   labs(
-    x = "Доход мужа",
-    y = "Эластиность по Фришу для женщин",
-    color = "Доход жены",
-    fill = "Доход жены"
+    x = "Male income",
+    y = "Female Frisch elasticity",
+    color = "Female income",
+    fill = "Female income"
   ) +
   theme_classic() + 
   theme(legend.position = "bottom")
 
-# Общий график
+# Combine both plots side by side
 plot_pref_cond_own_2d$fig <- plot_pref_cond_own_2d$fig1 + 
   plot_pref_cond_own_2d$fig2 + plot_layout(nrow = 1)

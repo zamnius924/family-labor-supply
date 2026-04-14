@@ -1,3 +1,10 @@
+# ============================================================================
+# model_pref_cond.R
+# ----------------------------------------------------------------------------
+# Conditional moment estimation: preference parameters as functions of income.
+# ============================================================================
+
+# Initial values and bounds (only elasticities, no variance parameters)
 start_model_pref_cond <- list(
   bounds = data.frame(
     xmin = c(
@@ -40,11 +47,12 @@ res_model_pref_cond <- list()
 res_model_pref_cond$coef <- data.frame()
 res_model_pref_cond$sd <- data.frame()
 
+# Loop over each grid point (num = unique combination of learnM and learnF)
 for (t in 1:length(unique(data_cond$grid$num))) { 
   
-  cat(c("\nИтерация:", t, "из", length(unique(data_cond$grid$num))), "\n")
+  cat(c("\nIteration:", t, "of", length(unique(data_cond$grid$num))), "\n")
   
-  # Условные моменты
+  # Build conditional moments at this grid point
   moments_cond <- data_cond$coef %>%
     left_join(
       data_cond$grid %>%
@@ -56,9 +64,9 @@ for (t in 1:length(unique(data_cond$grid$num))) {
     select(year, name, value) %>% 
     pivot_wider(names_from = name, values_from = value) %>% 
     ungroup() %>% 
-    add_row(year = 2000, .before = 1)
+    add_row(year = 2000, .before = 1) # dummy row to align with theoretical moments
   
-  # Оценка коэффициентов
+  # Estimate parameters at this grid point
   model_pref_cond <- fmincon(
     fn = GMM_model_pref_cond,
     sig_1 = res_model_wage,
@@ -69,6 +77,7 @@ for (t in 1:length(unique(data_cond$grid$num))) {
     ub = start_model_pref_cond$bounds$xmax
   )
   
+  # Store coefficients
   res_model_pref_cond$coef <- rbind(
     res_model_pref_cond$coef, 
     c(t,
@@ -82,7 +91,7 @@ for (t in 1:length(unique(data_cond$grid$num))) {
     "convergence", "value"
   )
   
-  # Бутстрап
+  # Bootstrap standard errors at this grid point
   boot_pref_cond <- boot(
     sample_index,
     bootstrap_cond,
@@ -103,12 +112,13 @@ for (t in 1:length(unique(data_cond$grid$num))) {
   
 }
 
-# Построение ДИ
+# Construct confidence intervals
 res_model_pref_cond$CI_u <- res_model_pref_cond$coef[,2:9] + 1.96 * res_model_pref_cond$sd[,2:9]
 res_model_pref_cond$CI_l <- res_model_pref_cond$coef[,2:9] - 1.96 * res_model_pref_cond$sd[,2:9]
 res_model_pref_cond$CI_u$num <- res_model_pref_cond$coef$num
 res_model_pref_cond$CI_l$num <- res_model_pref_cond$coef$num
 
+# Merge with income grid indices (numM, numF)
 res_model_pref_cond$coef <- as.data.frame(res_model_pref_cond$coef) %>%
   left_join(
     data_cond$grid %>% 

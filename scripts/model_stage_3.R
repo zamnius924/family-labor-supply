@@ -1,3 +1,11 @@
+# ============================================================================
+# model_stage_3.R
+# ----------------------------------------------------------------------------
+# GMM estimation of preference parameters (labour supply elasticities) using
+# the wage process parameters from stage 2 as fixed inputs.
+# ============================================================================
+
+# Initial values and bounds for preference parameters
 start_model_pref <- list(
   bounds = data.frame(
     xmin = c(
@@ -43,8 +51,9 @@ start_model_pref$start <- c(
   0.1, # sigma_gammaF
   0.1, # sigma_psiM
   0.1 # sigma_psiF
-) 
+)
 
+# Optimisation
 model_pref <- fmincon(
   fn = GMM_model_pref,
   sig = res_model_wage,
@@ -54,6 +63,7 @@ model_pref <- fmincon(
   ub = start_model_pref$bounds$xmax
 )
 
+# Store results
 res_model_pref <- c(model_pref$par, model_pref$convergence, model_pref$value)
 res_model_pref <- split(
   res_model_pref,

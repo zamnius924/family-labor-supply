@@ -1,4 +1,10 @@
-### Сводим все данные в общий файл
+# ============================================================================
+# data_all.R
+# ----------------------------------------------------------------------------
+# Merge all individual, household, and auxiliary data into a single data frame
+# 'all_data'.
+# ============================================================================
+
 all_data <- data_source$data_ind %>%
   left_join(data_source$data_hh) %>% 
   left_join(data_source$data_add) %>% 

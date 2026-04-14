@@ -1,14 +1,18 @@
-# Филлеры -----------------------------------------------------------------
+# ============================================================================
+# fillers.R
+# ----------------------------------------------------------------------------
+# Functions to impute missing wage and hours using alternative survey questions.
+# ============================================================================
+
+#' Fill missing monthly wage using last month's wage (first job)
 filler_wage <- function(df) {
-  # Заполним пропуски з/п в месяц данными за прошлый месяц по первой работе
   df <- df %>% 
     mutate(wage_month_filled = coalesce(wage_month, wage_last_month))
   
-  ## Переменные з/п в месяц для второй и третьей работ
-  # можно просто переименовать уже имеющиеся переменные в данных
+  # For second and third jobs, simply rename existing variables
   df <- df %>% 
     rename(
-      wage_month_filled_2 = wage_last_month_2,
+      wage_month_filled_2 = wage_last_month_2, 
       wage_month_filled_3 = wage_last_month_3
     ) %>% 
     relocate(wage_month_filled_2, wage_month_filled_3, .after = last_col())
@@ -16,43 +20,34 @@ filler_wage <- function(df) {
   return(df)
 }
 
-
+#' Fill missing monthly hours using weekly hours or daily hours
 filler_lab_sup <- function(df) {
-  # Заполним пропуски в часах в месяц
   df <- df %>%
-    ## Отработанные часы в среднем за месяц
     mutate(
-      # через отработанные часы в неделю (тут умножается на среднюю протяженность месяца в неделях)
+      # Weekly hours -> monthly (multiply by average weeks per month)
       lab_sup_month_w_filled = lab_sup_week * days / 12 / 7,
       lab_sup_month_w_filled_2 = lab_sup_week_2 * days / 12 / 7,
-      # через отработанные часы в день (22 рабочих дня в месяце)
+      # Daily hours -> monthly (22 working days)
       lab_sup_month_d_filled = lab_sup * 22,
       lab_sup_month_d_filled_2 = lab_sup_2 * 22
     ) %>% 
-
-    ## Заполняем пропуски в month_w_filled:
     mutate(
-      # 1) данными из lab_sup_last_month
-      lab_sup_month_filled = coalesce(lab_sup_month_w_filled,
-                                      lab_sup_last_month),
+      lab_sup_month_filled   = coalesce(lab_sup_month_w_filled,
+                                        lab_sup_last_month),
       lab_sup_month_filled_2 = coalesce(lab_sup_month_w_filled_2,
                                         lab_sup_last_month_2)
     ) %>% 
     mutate(
-      # 2) данными из month_d_filled
-      lab_sup_month_filled = coalesce(lab_sup_month_filled,
-                                      lab_sup_month_d_filled),
+      lab_sup_month_filled   = coalesce(lab_sup_month_filled,
+                                        lab_sup_month_d_filled),
       lab_sup_month_filled_2 = coalesce(lab_sup_month_filled_2,
                                         lab_sup_month_d_filled_2)
     ) %>%
-
-    ## Теперь будем сравнивать полученные часы в месяц с часами за прошлый месяц
+    # If the imputed value differs from last month's by more than 48 hours, keep last month's
     mutate(
-      lab_sup_dev = abs(lab_sup_month_filled - lab_sup_last_month),
+      lab_sup_dev   = abs(lab_sup_month_filled   - lab_sup_last_month),
       lab_sup_dev_2 = abs(lab_sup_month_filled_2 - lab_sup_last_month_2)
     ) %>%
-
-    ## После сравнения мы будем проводить замену там, где отклонение больше 48 часов
     mutate(
       lab_sup_month_filled = case_when(
         lab_sup_dev >= 48 & is.na(lab_sup_dev) == FALSE ~ lab_sup_last_month,
@@ -63,34 +58,29 @@ filler_lab_sup <- function(df) {
         TRUE ~ lab_sup_month_filled_2
       )
     ) %>% 
-
-    ## Доделаем переменную для третьей работы
+    # Third job: only if regular work
     mutate(
       lab_sup_month_filled_3 = case_when(
         regular == 2 ~ lab_sup_last_month_3,
         TRUE ~ NA_real_
       )
     ) %>%
-
-    ## Удалим ненужные колонки
-    select(-lab_sup_dev, -lab_sup_dev_2, 
+    select(-lab_sup_dev, -lab_sup_dev_2,
            -lab_sup_month_w_filled, -lab_sup_month_w_filled_2,
            -lab_sup_month_d_filled, -lab_sup_month_d_filled_2)
   
   return(df)
 }
 
-
+#' Clean inconsistent work indicators (e.g., working=2 but positive hours)
 corrector_lab_sup <- function(df) {
   df <- df %>% 
-    ## Первая работа
+    # First job
     mutate(
-      # 1) Не должно быть индивидов, которые working = 2, но предлагают труд или получают з/п
       lab_sup_month_filled = replace(lab_sup_month_filled, working == 2, NA),
-      wage_month_filled = replace(wage_month_filled, working == 2, NA)
+      wage_month_filled    = replace(wage_month_filled,    working == 2, NA)
     ) %>% 
     mutate(
-      # 2) Не должно быть работающих индивидов с нулевыми з/п и отработанными часами
       lab_sup_month_filled = replace(
         lab_sup_month_filled,
         working == 1 & lab_sup_month_filled == 0,
@@ -102,17 +92,11 @@ corrector_lab_sup <- function(df) {
         NA
       )
     ) %>% 
-
-    ## На второй работе есть два показателя working
+    # Second job (two possible working variables)
     mutate(
-      working_2 = replace(
-        working_2.1,
-        working_2.1 == 2 & working_2.2 == 1,
-        1
-      )
+      working_2 = replace(working_2.1, working_2.1 == 2 & working_2.2 == 1, 1)
     ) %>% 
     mutate(
-      # 1) не должно быть индивидов, которые working = 2, но предлагают труд или получают з/п
       lab_sup_month_filled_2 = replace(
         lab_sup_month_filled_2,
         working_2 == 2,
@@ -125,7 +109,6 @@ corrector_lab_sup <- function(df) {
       )
     ) %>% 
     mutate(
-      # 2) Не должно быть работающих индивидов с нулевыми з/п и отработанными часами
       lab_sup_month_filled_2 = replace(
         lab_sup_month_filled_2,
         working_2 == 1 & lab_sup_month_filled_2 == 0,
@@ -137,10 +120,8 @@ corrector_lab_sup <- function(df) {
         NA
       )
     ) %>% 
-
-    ## Третья работа
+    # Third job
     mutate(
-      # 1) не должно быть индивидов, которые working = 2, но предлагают труд или получают з/п
       lab_sup_month_filled_3 = replace(
         lab_sup_month_filled_3,
         working_3 == 2,
@@ -153,7 +134,6 @@ corrector_lab_sup <- function(df) {
       )
     ) %>%
     mutate(
-      # 2) Не должно быть работающих индивидов с нулевыми з/п и отработанными часами
       lab_sup_month_filled_3 = replace(
         lab_sup_month_filled_3,
         working_3 == 1 & lab_sup_month_filled_3 == 0,
@@ -165,11 +145,9 @@ corrector_lab_sup <- function(df) {
         NA
       )
     ) %>% 
-
-    ## Преобразование индикаторов работы
+    # Convert work indicators from 1/2 to 0/1
     mutate(
-      # Перекодируем в формат 0/1
-      working = abs(working - 2),
+      working   = abs(working   - 2),
       working_2 = abs(working_2 - 2),
       working_3 = abs(working_3 - 2)
     ) %>% 

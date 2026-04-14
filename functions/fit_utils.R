@@ -1,6 +1,17 @@
-# Goodness of fit ---------------------------------------------------------
+# ============================================================================
+# fit_utils.R
+# ----------------------------------------------------------------------------
+# Compute internal fit (model vs. data moments) for the baseline specification.
+# Produces a data frame with simulated and empirical moments for all moment
+# conditions used in the GMM.
+#
+# Dependencies:  params.R (first_year, last_year)
+# Called by:     scripts/internal_fit.R
+# ============================================================================
+
+#' Internal fit: compare simulated and empirical moments
 internal_fit <- function(kap, sig, df) {
-  # сопоставление моментных условий для GMM_sim_6
+  
   sigma_vM <- sig[[1]]
   sigma_uM <- sig[[2]]
   sigma_vF <- sig[[3]]
@@ -28,7 +39,7 @@ internal_fit <- function(kap, sig, df) {
   sigma_psiM <- kap[[11]]
   sigma_psiF <- kap[[12]]
   
-  ###### Теоретические моменты ###### 
+  # Theoretical moments
   moments_sim <- data.frame(year = first_year:last_year) %>% 
     mutate(
       sigma_vM = sigma_vM, 
@@ -48,9 +59,10 @@ internal_fit <- function(kap, sig, df) {
     ) %>%
     mutate(
       cov_eps_gammaM = sigma_gammaM - 0.5 * (sigma_gammaM + sigma_psiM - sigma_epsM),
-      cov_eps_gammaF = sigma_gammaF - 0.5 * (sigma_gammaF + sigma_psiF - sigma_epsF)) %>% 
+      cov_eps_gammaF = sigma_gammaF - 0.5 * (sigma_gammaF + sigma_psiF - sigma_epsF)
+    ) %>% 
     mutate(
-      # Этап 1
+      # Wage moments
       dwM_dwM = (sigma_uM + lag(sigma_uM)) +
         sigma_vM +
         (sigma_epsM + lag(sigma_epsM)),
@@ -93,7 +105,7 @@ internal_fit <- function(kap, sig, df) {
       dLc_dwF = - lag(sigma_uF) * k_c_uF -
         lag(cov_uMF) * k_c_uM,
       
-      # Этап 2
+      # Preference moments
       dyM_dyM = (sigma_uM + lag(sigma_uM)) * (1 + k_hM_uM)^2 +
         (cov_uMF + lag(cov_uMF)) * 2 * (1 + k_hM_uM) * k_hM_uF +
         (sigma_uF + lag(sigma_uF)) * k_hM_uF^2 +
@@ -177,11 +189,11 @@ internal_fit <- function(kap, sig, df) {
     ) %>%
     apply(2, mean, na.rm = TRUE)
   
-  ###### Эмпирические моменты ######
+  # Empirical moments
   moments_emp <- df %>%
     group_by(year) %>%
     summarise(
-      # Этап 1
+      # Wage moments
       dwM_dwM = mean(dwM * dwM, na.rm = TRUE),
       dwM_dLwM = mean(dwM * dLwM, na.rm = TRUE),
       dwF_dwF = mean(dwF * dwF, na.rm = TRUE),
@@ -198,7 +210,7 @@ internal_fit <- function(kap, sig, df) {
       dLc_dwM = mean(dLc * dwM, na.rm = TRUE),
       dLc_dwF = mean(dLc * dwF, na.rm = TRUE),
       
-      # Этап 2
+      # Preference moments
       dyM_dyM = mean(dyM * dyM, na.rm = TRUE),
       dyM_dLyM = mean(dyM * dLyM, na.rm = TRUE),
       dyF_dyF = mean(dyF * dyF, na.rm = TRUE),
@@ -220,7 +232,7 @@ internal_fit <- function(kap, sig, df) {
       dLyF_dwM = mean(dLyF * dwM, na.rm = TRUE)) %>% 
     apply(2, mean, na.rm = TRUE)
   
-  ###### Сводная таблица ######
+  # Combined table
   moments <- as.data.frame(rbind(moments_sim, moments_emp)) %>% 
     select(-year) %>% 
     rownames_to_column(var = "type")

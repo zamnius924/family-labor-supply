@@ -1,7 +1,19 @@
-# Оценка модели с условными моментами
+# ============================================================================
+# GMM_cond_utils.R
+# ----------------------------------------------------------------------------
+# GMM objective function and bootstrap helper for conditional moment estimation
+# (heterogeneity by household income). Uses pre‑computed projection coefficients
+# to construct moments at any point of the income grid.
+#
+# Dependencies:  params.R (first_year, last_year)
+#                data_cond (from arrangers/data_mod_cond.R)
+#                res_model_wage, res_model_pref
+# Called by:     scripts/model_pref_cond.R
+# ============================================================================
+
+#' GMM objective for preference parameters using conditional moments
 GMM_model_pref_cond <- function(kap, sig_1, sig_2, moments_emp) {
 
-  ### Предопределение пременных
   kap <- split(kap, rep(1:8, c(1, 1, 1, 1, 1, 1, 1, 1)))
   k_hM_uM <- kap[[1]]
   k_hM_vM <- kap[[2]]
@@ -29,7 +41,7 @@ GMM_model_pref_cond <- function(kap, sig_1, sig_2, moments_emp) {
   k_c_uF <- sig_1[[12]]
   k_c_vF <- sig_1[[13]]
   
-  ###### Теоретические моменты ######
+  # Theoretical moments
   moments_sim <- data.frame(year = first_year:last_year) %>% 
     mutate(
       sigma_vM = sigma_vM,
@@ -137,7 +149,7 @@ GMM_model_pref_cond <- function(kap, sig_1, sig_2, moments_emp) {
     pivot_longer(!year, names_to = "name") %>% 
     arrange(factor(name, levels = colnames(moments_sim)[-1]))
   
-  ###### Эмпирические моменты ######
+  # Empirical moments
   moments_emp <- moments_emp %>%
     pivot_longer(!year, names_to = "name") %>% 
     arrange(factor(name, levels = colnames(moments_emp)[-1]))
@@ -151,14 +163,14 @@ GMM_model_pref_cond <- function(kap, sig_1, sig_2, moments_emp) {
 
 }
 
-
+#' Bootstrap function for conditional moment estimation
 bootstrap_cond <- function(hh, i, t) {
   
-  # Бутстраповская подвыборка
+  # Bootstrap sample of households
   boot_sample <- data.frame(id_hh = hh[i]) %>%
     left_join(data_cond$df)
   
-  # Переоценка коэффициентов на бутстраповской подвыборке
+  # Re‑estimate projection coefficients for each moment on log earnings
   boot_coef <- boot_sample %>%
     pivot_longer(!c(id_hh, year, learnM, learnF)) %>% 
     right_join( # аналог moments_emp
@@ -178,7 +190,7 @@ bootstrap_cond <- function(hh, i, t) {
     rename(const = '(Intercept)', coef_learnM = learnM, coef_learnF = learnF) %>% 
     arrange(factor(name, levels = colnames(data_cond$df)[-1]))
   
-  # Оценка условных бутстраповских моментов
+  # Predict moments at the same grid point as in the original estimation
   boot_moments_cond <- boot_coef %>%
     left_join(
       data_cond$grid %>%
@@ -192,7 +204,7 @@ bootstrap_cond <- function(hh, i, t) {
     ungroup() %>% 
     add_row(year = 2000, .before = 1)
   
-  # Оценка модели
+  # Preference model estimation
   boot_model_pref_cond <- fmincon(
     fn = GMM_model_pref_cond,
     sig_1 = res_model_wage,

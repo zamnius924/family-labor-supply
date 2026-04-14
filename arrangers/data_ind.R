@@ -1,3 +1,10 @@
+# ============================================================================
+# data_ind.R
+# ----------------------------------------------------------------------------
+# Apply sample restrictions, clean measurement error, and create individual‑
+# level labor supply and earnings variables. Produces 'data_ind'.
+# ============================================================================
+
 data_ind <- restrict_sample(
     df = all_data, 
     codes = data_source$code_ind,
@@ -10,30 +17,32 @@ data_ind <- restrict_sample(
   ) %>% 
   as.data.frame(.)
 
-# Метрики труда -----------------------------------------------------------
-### Создаем метрики предложения труда по трем работам
+# ------------------------------------------------------------
+# Impute missing wages and hours
+# ------------------------------------------------------------
 data_ind <- data_ind %>%
-  filler_wage(.) %>% # три з/п
-  filler_lab_sup(.) %>% # три отработанных часов
-  corrector_lab_sup(.) # три индикатора работы + правки в созданных переменных
+  filler_wage(.) %>%
+  filler_lab_sup(.) %>%
+  corrector_lab_sup(.)
 
-
-### Создаем агрегированные метрики предложения труда
-## Номинальная часовая ставка з/п
+# ------------------------------------------------------------
+# Aggregate over up to three jobs
+# ------------------------------------------------------------
+# Hourly wage for each job
 data_ind <- data_ind %>%
   mutate(
-    # Номинальная часовая ставка з/п по каждой работе 
     wage_1 = wage_month_filled / lab_sup_month_filled,
     wage_2 = wage_month_filled_2 / lab_sup_month_filled_2,
     wage_3 = wage_month_filled_3 / lab_sup_month_filled_3
   )
 
+# Total wage (sum across jobs)
 data_ind$wage <- data_ind %>% 
   select(wage_1, wage_2, wage_3) %>%
   apply(1, sum, na.rm = TRUE) %>% 
   na_if(0)
 
-## Отработанные часы в месяц
+# Total monthly hours
 data_ind$sum_lab_sup_month <- data_ind %>% 
   select(
     lab_sup_month_filled, lab_sup_month_filled_2, lab_sup_month_filled_3
@@ -41,37 +50,35 @@ data_ind$sum_lab_sup_month <- data_ind %>%
   apply(1, sum, na.rm = TRUE) %>% 
   na_if(0)
 
-## Агрегированный индикатор работы
+# Work indicator (any job)
 data_ind$sum_working <- data_ind %>% 
   select(working, working_2, working_3) %>%
   apply(1, sum, na.rm = TRUE) %>% 
   as.logical() %>% 
   as.numeric()
 
-## Правки в агрегированные метрики
+# Clean inconsistencies
 data_ind <- data_ind %>% 
   mutate(
-    # Не должно быть индивидов, которые sum_working = 0, но предлагают труд или
-    # получают з/п
     sum_lab_sup_month = replace(sum_lab_sup_month, sum_working == 0, NA),
     wage = replace(wage, sum_working == 0, NA)
   )
 
-## Отработанные часы в год (с учетом отпусков и выходных)
+# ------------------------------------------------------------
+# Annual hours accounting for vacations and holidays
+# ------------------------------------------------------------
 data_ind <- data_ind %>%
   mutate(vacation = as.numeric(vacation)) %>% 
-  tidyr::replace_na(list(vacation = 0)) %>% # убираем пропуски в отпусках
+  tidyr::replace_na(list(vacation = 0)) %>%
   mutate(
     lab_sup_year = sum_lab_sup_month * 12 - (vacation + holidays) * sum_lab_sup_month / 22
   ) %>% 
-  mutate(lab_sup_year = replace(lab_sup_year, lab_sup_year < 0, NA)) %>%  # убираем тех, у кого часы отрицательные (в основном женщины в декрете)
+  mutate(lab_sup_year = replace(lab_sup_year, lab_sup_year < 0, NA)) %>%
   relocate(sum_working, lab_sup_year, wage, .after = last_col())
 
-
-
-
-# Дополнительные метрики --------------------------------------------------
-## Дефлируем на региональную инфляцию
+# ------------------------------------------------------------
+# Deflate using regional CPI
+# ------------------------------------------------------------
 data_ind <- data_ind %>% 
   mutate(
     wage = wage / CPI_reg * 100,
@@ -80,17 +87,22 @@ data_ind <- data_ind %>%
     grp_def = grp / CPI_reg * 100
   )
 
-## Количество трудоспособных и нетрудоспособных членов семьи
+# ------------------------------------------------------------
+# Family composition
+# ------------------------------------------------------------
 data_ind <- data_ind %>% 
   mutate(
-    work_age = work_age_f + work_age_m, # трудоспособные
-    nwork_age = nwork_age_f + nwork_age_m # нетрудоспособные
+    work_age = work_age_f + work_age_m,
+    nwork_age = nwork_age_f + nwork_age_m,
+    work_age_share = work_age / nfm
   )
 
-## Уровень образования
+# ------------------------------------------------------------
+# Education level (4 categories)
+# ------------------------------------------------------------
 data_ind <- data_ind %>% 
   mutate(
-    diplom_lev = case_when( # уровень образования ind
+    diplom_lev = case_when(
       diplom %in% c(1, 2, 3) ~ 1,
       diplom %in% c(4) ~ 2,
       diplom %in% c(5) ~ 3,
@@ -98,24 +110,20 @@ data_ind <- data_ind %>%
     )
   )
 
-## Годой реальный трудовой доход
+# ------------------------------------------------------------
+# Annual real labour earnings
+# ------------------------------------------------------------
 data_ind$earn <- data_ind$wage * data_ind$lab_sup_year
 
-## Доля работающих членов д/х
-data_ind <- data_ind %>% 
-  mutate(work_age_share = work_age / nfm)
-
-## Уберем наблюдения, где потребление и з/п равны 0
+# ------------------------------------------------------------
+# Remove observations with zero consumption or wage
+# ------------------------------------------------------------
 data_ind <- data_ind %>%
   subset((wage > 0 | is.na(wage) == TRUE) &
   (consump_nd > 0 | is.na(consump_nd) == TRUE))
 
-
-
-
-# Ограничения на темпы прироста метрик интереса ---------------------------
-# Очистка от ошибок измерения
+# ------------------------------------------------------------
+# Outlier cleaning and growth rates
+# ------------------------------------------------------------
 data_ind <- omit_me(data_ind)
-
-# Добавление темпов прироста основных метрик интереса
 data_ind <- metrics_diff(data_ind)

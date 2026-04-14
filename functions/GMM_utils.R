@@ -1,7 +1,13 @@
-# Оценка моделей ---------------------------
+# ============================================================================
+# GMM_utils.R
+# ----------------------------------------------------------------------------
+# GMM objective functions for wage process (stage 2) and preferences (stage 3),
+# plus a bootstrap wrapper.
+# ============================================================================
+
+#' GMM objective for wage process (stage 2)
 GMM_model_wage <- function(kap, data) {
 
-  ### Предопределение переменных
   kap <- split(kap, rep(1:13, c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)))
   sigma_vM <- kap[[1]]
   sigma_uM <- kap[[2]]
@@ -17,8 +23,7 @@ GMM_model_wage <- function(kap, data) {
   k_c_uF <- kap[[12]]
   k_c_vF <- kap[[13]]
 
-
-  ###### Теоретические моменты ###### 
+  # Theoretical moments
   moments_sim <- data.frame(year = first_year:last_year) %>% 
     mutate(
       sigma_vM = sigma_vM, 
@@ -83,8 +88,7 @@ GMM_model_wage <- function(kap, data) {
     pivot_longer(!year, names_to = "name") %>% 
     arrange(factor(name, levels = colnames(moments_sim)[-1]))
   
-
-  ###### Эмпирические моменты ######
+  # Empirical moments
   moments_emp <- data %>% 
     group_by(year) %>% 
     summarise(
@@ -118,10 +122,9 @@ GMM_model_wage <- function(kap, data) {
 
 }
 
-
+#' GMM objective for preferences (stage 3)
 GMM_model_pref <- function(kap, sig, data) {
 
-  ### Предопределение переменных
   kap <- split(kap, rep(1:12, c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)))
   k_hM_uM <- kap[[1]]
   k_hM_vM <- kap[[2]]
@@ -149,8 +152,7 @@ GMM_model_pref <- function(kap, sig, data) {
   k_c_uF <- sig[[12]]
   k_c_vF <- sig[[13]]
   
-
-  ###### Теоретические моменты ######
+  # Theoretical moments
   moments_sim <- data.frame(year = first_year:last_year) %>% 
     mutate(
       sigma_vM = sigma_vM, 
@@ -271,8 +273,7 @@ GMM_model_pref <- function(kap, sig, data) {
     pivot_longer(!year, names_to = "name") %>% 
     arrange(factor(name, levels = colnames(moments_sim)[-1]))
   
-
-  ###### Эмпирические моменты ######
+  # Empirical moments
   moments_emp <- data %>% 
     group_by(year) %>% 
     summarise(
@@ -310,12 +311,14 @@ GMM_model_pref <- function(kap, sig, data) {
   
 }
 
-
+#' Bootstrap function for baseline model
 bootstrap <- function(hh, i) {
   
+  # Bootstrap sample of households
   boot_sample <- data.frame(id_hh = hh[i]) %>%
     left_join(data_mod)
   
+  # Wage model estimation
   boot_model_wage <- fmincon(
     fn = GMM_model_wage,
     x0 = start_model_wage$start,
@@ -327,6 +330,7 @@ bootstrap <- function(hh, i) {
     boot_model_wage$value
   )
   
+  # Preference model estimation
   boot_model_pref <- fmincon(
     fn = GMM_model_pref,
     x0 = start_model_pref$start,

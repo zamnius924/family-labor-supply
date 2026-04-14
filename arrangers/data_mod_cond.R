@@ -1,7 +1,16 @@
-### Генерируем рабочие датасеты
+# ============================================================================
+# data_mod_cond.R
+# ----------------------------------------------------------------------------
+# Prepare data for conditional moment estimation (heterogeneity by income).
+# Produces list 'data_cond' containing:
+#   - df: data frame with cross products of residuals and log earnings
+#   - coef: coefficients from projecting each moment on log earnings
+#   - grid: income grid for prediction
+# ============================================================================
+
 data_cond <- list()
 
-# Датасет для вспомогательных регрессий: id_hh, year, moment conditions, log income
+# Compute all pairwise cross products needed as moments
 data_cond$df <- data_mod %>%
   mutate(
     dyM_dyM = dyM * dyM,
@@ -25,6 +34,7 @@ data_cond$df <- data_mod %>%
     dLyF_dwM = dLyF * dwM
   )
 
+# Add log earnings of both spouses
 data_cond$df <- data_cond$df %>%
   left_join(
     data %>%
@@ -35,11 +45,10 @@ data_cond$df <- data_cond$df %>%
   ungroup() %>% 
   select(id_hh, year, dyM_dyM:last_col())
 
-
-# Коэффициенты для каждого моментного условия в каждом году
+# For each moment and each year, regress the moment on learnM and learnF
 data_cond$coef <- data_cond$df %>%
   pivot_longer(!c(id_hh, year, learnM, learnF)) %>% 
-  right_join( # аналог moments_emp
+  right_join(
     data_cond$df %>%
       group_by(year) %>%
       summarise_all(mean, na.rm = TRUE) %>% 
@@ -56,17 +65,16 @@ data_cond$coef <- data_cond$df %>%
   rename(const = '(Intercept)', coef_learnM = learnM, coef_learnF = learnF) %>% 
   arrange(factor(name, levels = colnames(data_cond$df)[-1]))
 
-# Размер сетки
-data_cond$grid_size <- 11 # нечетное, чтобы 0 попадал
+# Income grid (standardised units)
+data_cond$grid_size <- 11 # odd number so that zero is included
 
-# Сетка по доходам
+# Determine min and max for log earnings (±1.5 sd)
 data_cond$axis <- data_cond$df %>%
   subset(year != 2000) %>% 
   select(year, learnM, learnF) %>% 
   pivot_longer(!year) %>% 
   group_by(name, year) %>%
   summarise(
-    #mean = mean(value, na.rm = TRUE),
     min = mean(value, na.rm = TRUE) - 1.5 * sd(value, na.rm = TRUE),
     max = mean(value, na.rm = TRUE) + 1.5 * sd(value, na.rm = TRUE)
   ) %>% 
@@ -79,6 +87,7 @@ data_cond$axis <- data_cond$df %>%
   pivot_wider(names_from = name, values_from = seq) %>% 
   arrange(num, year)
 
+# Full grid of (learnM, learnF) combinations
 data_cond$grid <- data_cond$axis %>%
   group_by(year) %>% 
   expand(learnM, learnF) %>% 

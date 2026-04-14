@@ -1,6 +1,13 @@
+# ============================================================================
+# bootstrap_pref_hetero.R
+# ----------------------------------------------------------------------------
+# Bootstrap inference for education‑heterogeneous preference parameters.
+# ============================================================================
+
+# Loop over education groups
 for (k in 1:4) {
   
-  print(paste("Итерация", k, "из 4"))
+  print(paste("Iteration", k, "of 4"))
   
   sample_index <- unique(subset(data_mod_hetero, educ == k)$id_hh)
   
@@ -12,6 +19,7 @@ for (k in 1:4) {
     ncpus = ncpus,
     k = k)
   
+  # Standard deviations of the 8 elasticities
   res_model_pref_hetero$sd[[k]] <- apply(boot_pref_hetero[["t"]][,1:8], 2, sd)
   names(res_model_pref_hetero$sd[[k]]) <- c(
     "k_hM_uM", "k_hM_vM", "k_hF_uF", "k_hF_vF",
@@ -22,6 +30,7 @@ for (k in 1:4) {
 
 rm(boot_pref_hetero)
 
+# Reshape coefficients into a tidy table
 res_model_pref_hetero$table_coef <- t(rbind(
     data.frame(res_model_pref_hetero$coef[[1]])[1,1:8],
     data.frame(res_model_pref_hetero$coef[[2]])[1,1:8],
@@ -36,6 +45,7 @@ res_model_pref_hetero$table_coef <- t(rbind(
     values_to = "coef"
   )
 
+# Reshape standard deviations
 res_model_pref_hetero$table_sd <- t(rbind(
     res_model_pref_hetero$sd[[1]],
     res_model_pref_hetero$sd[[2]],
@@ -50,6 +60,7 @@ res_model_pref_hetero$table_sd <- t(rbind(
     values_to = "sd"
   )
 
+# Combine, compute confidence intervals, and add education/sex indicators
 res_model_pref_hetero$table <- res_model_pref_hetero$table_coef %>% 
   left_join(res_model_pref_hetero$table_sd) %>% 
   mutate(

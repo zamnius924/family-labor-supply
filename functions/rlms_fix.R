@@ -1,4 +1,12 @@
-# rlms_cleanup ------------------------------------------------------------
+# ============================================================================
+# rlms_fix.R
+# ----------------------------------------------------------------------------
+# WARNING: This file modifies internal functions of the 'rlms' package using
+#          assignInNamespace(). It may break after package updates.
+# Purpose: Override rlms_cleanup() and rlms_labelled2factor.data.frame() to
+#          handle RLMS data more consistently.
+# ============================================================================
+
 rlms_cleanup <- function (df, suppress = TRUE, empty2na = TRUE, nan2na = TRUE, 
           nine2na = TRUE, yesno = TRUE, apostrophe = TRUE, remove_empty = TRUE, 
           colnames_tolower = TRUE, verbose = FALSE) 
@@ -69,9 +77,6 @@ rlms_cleanup <- function (df, suppress = TRUE, empty2na = TRUE, nan2na = TRUE,
 }
 
 
-
-
-# rlms_labelled2factor.data.frame -----------------------------------------
 rlms_labelled2factor.data.frame <- function (x, verbose = FALSE, ...) 
 {
   if (verbose) {
@@ -104,8 +109,6 @@ rlms_labelled2factor.data.frame <- function (x, verbose = FALSE, ...)
   return(x)
 }
 
-
-
-# Assigning functions -----------------------------------------------------
+# Override the package's internal functions
 assignInNamespace("rlms_cleanup", rlms_cleanup, ns = "rlms")
 assignInNamespace("rlms_labelled2factor.data.frame", rlms_labelled2factor.data.frame, ns = "rlms")

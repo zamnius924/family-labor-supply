@@ -1,7 +1,13 @@
-# Оценка
+# ============================================================================
+# model_pref_hetero.R
+# ----------------------------------------------------------------------------
+# GMM estimation of preference parameters separately for four education groups.
+# ============================================================================
+
 model_pref_hetero <- list()
 res_model_pref_hetero <- list()
 
+# Initial values and bounds (same as baseline, but without sigma_gamma/psi)
 start_model_pref_hetero <- list(
   bounds = data.frame(
     xmin = c(
@@ -38,9 +44,10 @@ start_model_pref_hetero$start <- c(
   0  # k_hF_vM
 ) 
 
+# Loop over education groups (1..4)
 for (k in 1:4) {
   
-  print(paste("Итерация", k, "из 4"))
+  print(paste("Iteration", k, "of 4"))
   
   model_pref_hetero[[k]] <- fmincon(
     fn = GMM_model_pref_hetero,
@@ -52,6 +59,7 @@ for (k in 1:4) {
     ub = start_model_pref_hetero$bounds$xmax
   )
 
+  # Store coefficients (8 elasticities) plus convergence and criterion
   res_model_pref_hetero$coef[[k]] <- c(
     model_pref_hetero[[k]]$par,
     model_pref_hetero[[k]]$convergence,
