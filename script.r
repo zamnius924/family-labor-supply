@@ -17,7 +17,7 @@
 }
 
 source("functions/rlms_fix.R")
-source("functions/add_functions.R")
+#source("functions/add_functions.R")
 
 {
   setwd("/Users/alexey/Desktop/Labor market research/data/RLMS_1994_2020 (28.VI.2022)")
@@ -52,7 +52,7 @@ last_year <- 2019
 period <- last_year - first_year + 1
 
 # Дополнительные параметры
-B <- 1000
+B <- 5
 
 
 ### Импортируем дополнительные файлы
@@ -99,9 +99,14 @@ add_sources$days <- add_sources$days %>%
 source("arrangers/data_all.R")
 
 # Вводим основные ограничения на выборку => получаем выборку на индивидуальном уровне
+source("functions/restrictions.R")
+source("functions/fillers.R")
+source("functions/omit_utils.R")
+source("functions/estimation_utils.R")
 source("arrangers/data_ind.R")
 
 # Переводим данные на уровень д/х
+source("functions/partner_utils.R")
 source("arrangers/data_full.R")
 
 
@@ -114,9 +119,7 @@ source("scripts/model_stage_1.R")
 # Создание переменных для GMM
 source("arrangers/data_mod.R")
 
-### Internal fit
-source("scripts/internal_fit.R")
-fit_plot$plot
+source("functions/GMM_utils.R")
 
 ### Шаг 2
 source("scripts/model_stage_2.R")
@@ -126,25 +129,29 @@ res_model_wage
 source("scripts/model_stage_3.R")
 res_model_pref
 
+### Internal fit
+source("functions/fit_utils.R")
+source("scripts/internal_fit.R")
+fit_plot$plot
+
 ### Бутстрап
 source("scripts/bootstrap.R")
 results
 
 ### Гетерогенность по уровню образования
+source("functions/GMM_hetero_utils.R")
 source("arrangers/data_mod_hetero.R")
 source("scripts/model_pref_hetero.R")
 res_model_pref_hetero
 
 source("scripts/bootstrap_pref_hetero.R")
-res_model_pref_hetero$table
-
 source("scripts/plot_pref_hetero.R")
 res_model_pref_hetero$elast_own
 res_model_pref_hetero$elast_cross
 
 ### Гетерогенность по доходу
+source("functions/GMM_cond_utils.R")
 source("arrangers/data_mod_cond.R")
-data_cond
 
 source("scripts/model_pref_cond.R")
 res_model_pref_cond
