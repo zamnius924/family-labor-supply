@@ -109,6 +109,8 @@ source("arrangers/data_ind.R")
 source("functions/partner_utils.R")
 source("arrangers/data_full.R")
 
+rm(data_source, add_sources)
+
 
 
 
