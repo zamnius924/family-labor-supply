@@ -72,10 +72,10 @@ Bootstrap inference (household clustering) is used throughout.
 
 ## Reproduction instructions
 
-### 1. Clone the repository
+## 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/family-labor-supply.git
+git clone https://github.com/zamnius924/family-labor-supply
 cd family-labor-supply
 ```
 
@@ -83,7 +83,7 @@ cd family-labor-supply
 
 The RLMS‑HSE data are **not** redistributable. You must obtain them directly from the [RLMS‑HSE website](https://www.hse.ru/en/rlms/).
 
-After registration, download the following files (1994–2020 wave, version 4 or later):
+After registration, download the following files (version 4 or later):
 
 - `USER_RLMS-HSE_IND_1994_2020_v4_rus.sav`
 - `USER_RLMS-HSE_HH_1994_2020_rus.sav`
