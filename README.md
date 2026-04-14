@@ -138,7 +138,3 @@ If you use this code or the results, please cite the accompanying paper:
 ## License
 
 This code is provided under the MIT License. The RLMS‑HSE data are subject to their own terms of use.
-
-## Contact
-
-Alexey Zamnius – [your.email@example.com] – [GitHub profile link]
