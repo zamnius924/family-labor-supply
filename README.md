@@ -72,6 +72,8 @@ Bootstrap inference (household clustering) is used throughout.
 
 ## Reproduction instructions
 
+> **Note:** A detailed guide covering data sources, cleaning steps, and the econometric methodology is available in [`DATA_METHODOLOGY_GUIDE.md`](DATA_METHODOLOGY_GUIDE.md).
+
 ### 1. Clone the repository
 
 ```bash
