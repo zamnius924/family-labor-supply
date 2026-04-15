@@ -72,14 +72,14 @@ Bootstrap inference (household clustering) is used throughout.
 
 ## Reproduction instructions
 
-## 1. Clone the repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/zamnius924/family-labor-supply
 cd family-labor-supply
 ```
 
-## 2. Obtain the RLMS‑HSE data
+### 2. Obtain the RLMS‑HSE data
 
 The RLMS‑HSE data are **not** redistributable. You must obtain them directly from the [RLMS‑HSE website](https://www.hse.ru/en/rlms/).
 
@@ -95,7 +95,7 @@ Place them in the `data/` folder.
 
 A detailed description of the data cleaning and processing steps is provided in the paper (Section 2.2 – Data and Sample).
 
-## 3. Obtain auxiliary data
+### 3. Obtain auxiliary data
 
 The following files are **not** part of the standard RLMS release. They are constructed from official Rosstat (Russian Federal State Statistics Service) sources:
 
@@ -104,7 +104,7 @@ The following files are **not** part of the standard RLMS release. They are cons
 - `grp.xlsx` – gross regional product (GRP) by region
 - `fed_min.xlsx` – federal minimum wage
 
-## 4. Restore R environment
+### 4. Restore R environment
 
 Open an R session in the project root and run:
 
@@ -115,7 +115,7 @@ renv::restore()
 
 This will install exact versions of all required packages into a project‑local library (folder renv/library).
 
-## 5. Run the analysis
+### 5. Run the analysis
 
 ```r
 source("script.R")
