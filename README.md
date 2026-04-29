@@ -31,6 +31,7 @@ Bootstrap inference (household clustering) is used throughout.
 ├── packages.txt      # list of required R packages (for manual installation)
 ├── renv.lock         # lock file for renv (exact package versions)
 ├── .Rprofile         # auto‑activates renv
+│
 ├── arrangers/        # data preparation scripts
 ├── scripts/          # model estimation and plotting
 ├── functions/        # core functions used by the scripts
