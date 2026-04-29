@@ -23,47 +23,20 @@ Bootstrap inference (household clustering) is used throughout.
 
 ## Repository structure
 
-- `script.R` — main master script
-- `params.R` — global parameters (years, bootstrap settings)
-- `packages.txt` — list of required R packages (for manual installation)
-- `renv.lock` — lock file for renv (exact package versions)
-- `.Rprofile` — auto‑activates renv
-- `README.md` — this file
-- `arrangers/` — data preparation scripts
-  - `source_data.R`
-  - `source_cpi.R`
-  - `data_all.R`
-  - `data_ind.R`
-  - `data_full.R`
-  - `data_mod.R`
-  - `data_mod_hetero.R`
-  - `data_mod_cond.R`
-- `scripts/` — model estimation and plotting
-  - `model_stage_1.R`
-  - `model_stage_2.R`
-  - `model_stage_3.R`
-  - `internal_fit.R`
-  - `bootstrap.R`
-  - `model_pref_hetero.R`
-  - `bootstrap_pref_hetero.R`
-  - `plot_pref_hetero.R`
-  - `model_pref_cond.R`
-  - `plot_pref_cond_own_3d.R`
-  - `plot_pref_cond_cross_3d.R`
-  - `plot_pref_cond_own_2d.R`
-- `functions/` — core functions used by the scripts
-  - `restrictions.R`
-  - `fillers.R`
-  - `omit_utils.R`
-  - `estimation_utils.R`
-  - `partner_utils.R`
-  - `rlms_fix.R`
-  - `GMM_utils.R`
-  - `GMM_hetero_utils.R`
-  - `GMM_cond_utils.R`
-  - `fit_utils.R`
-- `data/` — raw data (see below for details)
-- `figures/` — generated plots (not included, created by scripts)
+```
+.
+├── README.md
+├── script.R          # main master script
+├── params.R          # global parameters (years, bootstrap settings)
+├── packages.txt      # list of required R packages (for manual installation)
+├── renv.lock         # lock file for renv (exact package versions)
+├── .Rprofile         # auto‑activates renv
+├── arrangers/        # data preparation scripts
+├── scripts/          # model estimation and plotting
+├── functions/        # core functions used by the scripts
+├── data/             # raw data (see below for details)
+└── figures/          # generated plots (not included, created by scripts)
+```
 
 ## Requirements
 
