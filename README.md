@@ -26,6 +26,8 @@ Bootstrap inference (household clustering) is used throughout.
 ```
 .
 ├── README.md
+├── DATA_METHODOLOGY_GUIDE.md
+│
 ├── script.R          # main master script
 ├── params.R          # global parameters (years, bootstrap settings)
 ├── packages.txt      # list of required R packages (for manual installation)
