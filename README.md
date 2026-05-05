@@ -2,7 +2,7 @@
 
 This repository contains the replication code for the empirical analysis presented in
 
-> Zamnius A. (2026) **[Family Labor Supply and Wage Shocks in an Emerging Market: Evidence from Russia](https://www.sciencedirect.com/science/article/abs/pii/S1566014126000543)**. *Emerging Markets Review*, 101490
+> Zamnius A. (2026) **[Family Labor Supply and Wage Shocks in an Emerging Market: Evidence from Russia](https://www.sciencedirect.com/science/article/abs/pii/S1566014126000543)**. *Emerging Markets Review*, 101490. https://doi.org/10.1016/j.ememar.2026.101490
 
 [Preprinted version](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4822593)
 
